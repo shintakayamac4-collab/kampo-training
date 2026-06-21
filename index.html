@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>漢方臨床トレーニング ― 症例から煎じ薬を組み立てる</title>
+<style>
+:root{
+  --bg:#f7f3ec; --panel:#fffdf8; --ink:#2d2a26; --sub:#6b6258;
+  --accent:#7a5c3e; --accent2:#9c7b4f; --good:#3d7a52; --bad:#b14b3a;
+  --line:#e2d9c9; --chip:#efe6d4;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;background:var(--bg);color:var(--ink);line-height:1.7;}
+header{background:linear-gradient(135deg,#5c4326,#7a5c3e);color:#fdf8ee;padding:28px 5vw;}
+header h1{margin:0 0 6px;font-size:1.5rem;letter-spacing:.05em;}
+header p{margin:0;font-size:.85rem;color:#e7d9bf;}
+.wrap{max-width:920px;margin:0 auto;padding:24px 5vw 80px;}
+.progress{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap;}
+.progress span{flex:1;min-width:40px;text-align:center;padding:6px 4px;font-size:.72rem;border-radius:6px;background:var(--chip);color:var(--sub);border:1px solid var(--line);}
+.progress span.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.progress span.done{background:#dce8de;color:var(--good);border-color:#b9d6c0;}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px 28px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.panel h2{margin-top:0;font-size:1.15rem;border-bottom:2px solid var(--line);padding-bottom:8px;color:var(--accent);}
+.panel h3{font-size:1rem;color:var(--accent2);margin-bottom:6px;}
+.case-text{background:#fbf7ee;border-left:4px solid var(--accent2);padding:14px 18px;border-radius:0 8px 8px 0;font-size:.95rem;white-space:pre-line;}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0;}
+.choice{padding:8px 14px;border:1px solid var(--line);border-radius:20px;background:var(--chip);cursor:pointer;font-size:.85rem;user-select:none;transition:.15s;}
+.choice:hover{border-color:var(--accent2);}
+.choice.selected{background:var(--accent);color:#fff;border-color:var(--accent);}
+.choice.correct{background:#dce8de;border-color:var(--good);color:var(--good);font-weight:bold;}
+.choice.incorrect{background:#f3dcd6;border-color:var(--bad);color:var(--bad);text-decoration:line-through;}
+select,input[type=number],input[type=text]{font-family:inherit;font-size:.9rem;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;}
+.btn{display:inline-block;padding:10px 22px;background:var(--accent);color:#fff;border:none;border-radius:24px;font-size:.9rem;cursor:pointer;letter-spacing:.05em;}
+.btn:hover{background:var(--accent2);}
+.btn.secondary{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn.ghost{background:transparent;color:var(--sub);border:1px solid var(--line);font-size:.82rem;padding:8px 14px;}
+.nav-actions{display:flex;justify-content:space-between;margin-top:18px;}
+.herb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:10px;}
+.herb-card{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fbf7ee;cursor:pointer;font-size:.8rem;position:relative;}
+.herb-card.active{background:#e9dcc1;border-color:var(--accent);}
+.herb-card .name{font-weight:bold;font-size:.85rem;}
+.herb-card .kana{font-size:.68rem;color:var(--sub);}
+.herb-card .eff{font-size:.66rem;color:var(--sub);margin-top:2px;}
+.herb-card .dose-row{margin-top:6px;display:flex;align-items:center;gap:4px;}
+.herb-card input[type=number]{width:54px;}
+.basket{background:#f1ead7;border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin-top:14px;}
+.basket table{width:100%;border-collapse:collapse;font-size:.85rem;}
+.basket th,.basket td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line);}
+.score-box{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0;}
+.score-card{flex:1;min-width:140px;background:#fbf7ee;border:1px solid var(--line);border-radius:8px;padding:14px;text-align:center;}
+.score-card .num{font-size:1.8rem;font-weight:bold;color:var(--accent);}
+.score-card .label{font-size:.75rem;color:var(--sub);}
+.compare-table{width:100%;border-collapse:collapse;font-size:.83rem;margin-top:10px;}
+.compare-table th,.compare-table td{border:1px solid var(--line);padding:6px 8px;text-align:center;}
+.compare-table th{background:var(--chip);}
+.tag-ok{color:var(--good);font-weight:bold;}
+.tag-miss{color:var(--bad);}
+.tag-extra{color:#a07c2c;}
+.explanation{background:#eef3ec;border-left:4px solid var(--good);padding:12px 16px;border-radius:0 8px 8px 0;font-size:.88rem;margin-top:12px;}
+.case-select{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+.case-btn{border:1px solid var(--line);background:#fbf7ee;border-radius:8px;padding:10px 12px;cursor:pointer;font-size:.85rem;text-align:left;}
+.case-btn:hover{border-color:var(--accent2);}
+.case-btn .ttl{font-weight:bold;}
+.case-btn .sub{font-size:.72rem;color:var(--sub);}
+.case-btn .score-tag{display:inline-block;margin-top:5px;font-size:.7rem;padding:2px 8px;border-radius:10px;font-weight:bold;}
+.case-btn .score-tag.done{background:#d4edda;color:#2d6a3f;}
+.case-btn .score-tag.notyet{background:#f0ece4;color:#9a8a70;}
+.mastery-panel{background:linear-gradient(135deg,#f5efe0,#ede4d0);border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin-bottom:16px;}
+.mastery-header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+.mastery-badge{padding:4px 14px;border-radius:20px;color:#fff;font-weight:bold;font-size:.92rem;letter-spacing:.06em;}
+.mastery-stars{font-size:1.1rem;letter-spacing:2px;}
+.mastery-stat{font-size:.8rem;color:var(--sub);}
+.cat-bars{display:grid;grid-template-columns:68px 1fr 36px;row-gap:5px;column-gap:8px;align-items:center;font-size:.78rem;}
+.cat-bar-track{height:9px;background:#e2d9c9;border-radius:5px;overflow:hidden;}
+.cat-bar-fill{height:100%;border-radius:5px;}
+.mastery-reset{font-size:.72rem;color:var(--sub);cursor:pointer;text-decoration:underline;margin-top:8px;display:inline-block;}
+.kotenseki-box{background:#faf5e8;border:1px solid #d4b96a;border-radius:10px;padding:14px 18px;margin-top:4px;}
+.kotenseki-source{font-size:.78rem;color:#8a6a2a;font-weight:bold;margin-bottom:6px;}
+.kotenseki-quote{font-family:serif;font-size:.9rem;color:#3d2c10;background:#f5ede0;border-left:3px solid #c8a850;padding:8px 12px;margin:8px 0;border-radius:0 6px 6px 0;line-height:1.8;}
+.kotenseki-modern{font-size:.83rem;color:#4a3820;line-height:1.8;}
+.note{font-size:.75rem;color:var(--sub);margin-top:6px;}
+.shinsatsu-box{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin-top:14px;}
+.shinsatsu-item{background:var(--chip);border-radius:8px;padding:9px 12px;font-size:.82rem;line-height:1.5;}
+.shinsatsu-item .sh-label{font-weight:bold;color:var(--accent2);font-size:.72rem;letter-spacing:.03em;margin-bottom:3px;}
+footer{text-align:center;padding:30px 5vw;color:var(--sub);font-size:.75rem;border-top:1px solid var(--line);}
+.legend{font-size:.72rem;color:var(--sub);margin-top:4px;}
+.disclaimer{background:#fff3e0;border:1px solid #e6c98a;border-radius:8px;padding:12px 16px;font-size:.78rem;color:#7a5c20;margin-bottom:20px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>漢方臨床トレーニング ― 症例から煎じ薬を組み立てる</h1>
+  <p>症例を読み解き → 漢方的診断（八綱・気血水・五臓） → 方証の決定 → 治法の決定 → 生薬を一つずつ選んで処方を構成する、学習用シミュレーターです。</p>
+</header>
+<div class="wrap">
+
+<div class="disclaimer">
+本ツールは学習・教育目的の試作版です。処方の生薬構成・用量は代表的な構成を簡略化したものであり（一部の生薬は割愛、用量は教育用の目安）、実際の臨床用量や保険適用エキス剤の量とは異なります。実際の診療・調剤は必ず正式な文献・指導医の確認のもとで行ってください。
+</div>
+
+<div class="progress" id="progressBar"></div>
+<div id="app"></div>
+
+</div>
+<footer>漢方臨床トレーニング（学習用プロトタイプ） ／ 本ファイルはブラウザのみで動作し、サーバーへの送信は行いません。</footer>
+
+<script>
+/* ============================== DATA ============================== */
+
+const HERBS = [
+ {id:"keihi",name:"桂皮",kana:"ケイヒ",cat:"解表・温陽",eff:"解表・温陽・血行促進",dose:[3,4]},
+ {id:"mao",name:"麻黄",kana:"マオウ",cat:"解表",eff:"発汗解表・止咳平喘",dose:[3,5]},
+ {id:"kakkon",name:"葛根",kana:"カッコン",cat:"解表",eff:"解表・解肌・生津",dose:[4,8]},
+ {id:"shakuyaku",name:"芍薬",kana:"シャクヤク",cat:"補血",eff:"補血・柔肝・緩急止痛",dose:[3,6]},
+ {id:"kanzo",name:"甘草",kana:"カンゾウ",cat:"補気",eff:"補気・調和諸薬・緩和",dose:[1,3]},
+ {id:"taiso",name:"大棗",kana:"タイソウ",cat:"補気",eff:"補脾・養血・安神",dose:[2,4]},
+ {id:"shokyo",name:"生姜",kana:"ショウキョウ",cat:"温裏",eff:"温中散寒・解表・止嘔",dose:[1,3]},
+ {id:"kankyo",name:"乾姜",kana:"カンキョウ",cat:"温裏",eff:"温中散寒（生姜より作用強）",dose:[1,3]},
+ {id:"kyonin",name:"杏仁",kana:"キョウニン",cat:"止咳",eff:"止咳平喘・潤肺",dose:[3,5]},
+ {id:"saiko",name:"柴胡",kana:"サイコ",cat:"和解",eff:"和解少陽・疏肝解鬱・退熱",dose:[3,7]},
+ {id:"ougon",name:"黄芩",kana:"オウゴン",cat:"清熱",eff:"清熱燥湿・瀉火",dose:[2,3]},
+ {id:"hange",name:"半夏",kana:"ハンゲ",cat:"化痰",eff:"化痰・降逆止嘔",dose:[3,6]},
+ {id:"ninjin",name:"人参",kana:"ニンジン",cat:"補気",eff:"補気・健脾・生津",dose:[2,4]},
+ {id:"bukuryo",name:"茯苓",kana:"ブクリョウ",cat:"利水",eff:"利水滲湿・健脾・安神",dose:[3,6]},
+ {id:"byakujutsu",name:"白朮",kana:"ビャクジュツ",cat:"健脾",eff:"健脾燥湿・益気",dose:[3,4]},
+ {id:"sojutsu",name:"蒼朮",kana:"ソウジュツ",cat:"健脾",eff:"燥湿健脾・祛風湿",dose:[3,4]},
+ {id:"bushi",name:"附子",kana:"ブシ",cat:"温陽",eff:"回陽救逆・温陽散寒（劇薬注意）",dose:[0.5,1]},
+ {id:"saishin",name:"細辛",kana:"サイシン",cat:"温裏",eff:"温経散寒・止痛",dose:[1,3]},
+ {id:"toki",name:"当帰",kana:"トウキ",cat:"補血",eff:"補血活血・調経",dose:[3,5]},
+ {id:"senkyu",name:"川芎",kana:"センキュウ",cat:"活血",eff:"活血行気・止痛",dose:[3,4]},
+ {id:"jio",name:"地黄",kana:"ジオウ",cat:"補血",eff:"補血滋陰・涼血",dose:[3,6]},
+ {id:"botanpi",name:"牡丹皮",kana:"ボタンピ",cat:"活血",eff:"清熱涼血・活血散瘀",dose:[2,4]},
+ {id:"tonin",name:"桃仁",kana:"トウニン",cat:"活血",eff:"活血祛瘀・潤腸",dose:[2,5]},
+ {id:"koka",name:"紅花",kana:"コウカ",cat:"活血",eff:"活血通経",dose:[1,2]},
+ {id:"kijitsu",name:"枳実",kana:"キジツ",cat:"理気",eff:"理気・破気消痞",dose:[1,3]},
+ {id:"koboku",name:"厚朴",kana:"コウボク",cat:"理気",eff:"理気燥湿・降逆",dose:[2,3]},
+ {id:"soyo",name:"蘇葉",kana:"ソヨウ",cat:"理気",eff:"解表理気・化痰",dose:[1,3]},
+ {id:"kobushi",name:"香附子",kana:"コウブシ",cat:"理気",eff:"理気解鬱・調経",dose:[2,3]},
+ {id:"chinpi",name:"陳皮",kana:"チンピ",cat:"理気",eff:"理気健脾・化痰",dose:[2,4]},
+ {id:"ouren",name:"黄連",kana:"オウレン",cat:"清熱",eff:"清熱燥湿・瀉火解毒",dose:[1,2]},
+ {id:"oubaku",name:"黄柏",kana:"オウバク",cat:"清熱",eff:"清熱燥湿・瀉火",dose:[1,3]},
+ {id:"sanshishi",name:"山梔子",kana:"サンシシ",cat:"清熱",eff:"清熱瀉火・涼血",dose:[1,3]},
+ {id:"daio",name:"大黄",kana:"ダイオウ",cat:"瀉下",eff:"瀉下攻積・活血",dose:[0.5,2]},
+ {id:"boushou",name:"芒硝",kana:"ボウショウ",cat:"瀉下",eff:"瀉下軟堅",dose:[0.5,2]},
+ {id:"ryukotsu",name:"龍骨",kana:"リュウコツ",cat:"安神",eff:"安神鎮驚・収斂固渋",dose:[3,4]},
+ {id:"borei",name:"牡蛎",kana:"ボレイ",cat:"安神",eff:"安神・軟堅散結・収斂",dose:[3,4]},
+ {id:"sansoninn",name:"酸棗仁",kana:"サンソウニン",cat:"安神",eff:"養心安神・敛汗",dose:[3,5]},
+ {id:"sanyaku",name:"山薬",kana:"サンヤク",cat:"補腎",eff:"補脾益腎・固精",dose:[3,4]},
+ {id:"sanshuyu",name:"山茱萸",kana:"サンシュユ",cat:"補腎",eff:"補腎益精・収斂固渋",dose:[3,3]},
+ {id:"takusha",name:"沢瀉",kana:"タクシャ",cat:"利水",eff:"利水滲湿・清熱",dose:[3,4]},
+ {id:"chorei",name:"猪苓",kana:"チョレイ",cat:"利水",eff:"利水滲湿",dose:[3,4]},
+ {id:"goshuyu",name:"呉茱萸",kana:"ゴシュユ",cat:"温裏",eff:"温中散寒・理気止痛",dose:[1,3]},
+ {id:"bofu",name:"防風",kana:"ボウフウ",cat:"解表",eff:"祛風解表・勝湿",dose:[2,3]},
+ {id:"rengyo",name:"連翹",kana:"レンギョウ",cat:"清熱",eff:"清熱解毒・消腫",dose:[1.5,3]},
+ {id:"kikyo",name:"桔梗",kana:"キキョウ",cat:"化痰",eff:"宣肺・祛痰排膿",dose:[2,3]},
+ {id:"sekko",name:"石膏",kana:"セッコウ",cat:"清熱",eff:"清熱瀉火・除煩",dose:[5,10]},
+ {id:"chimo",name:"知母",kana:"チモ",cat:"清熱",eff:"清熱瀉火・滋陰潤燥",dose:[2,3]},
+ {id:"bakumondo",name:"麦門冬",kana:"バクモンドウ",cat:"滋陰",eff:"養陰潤肺・益胃生津",dose:[3,10]},
+ {id:"gomishi",name:"五味子",kana:"ゴミシ",cat:"収斂",eff:"収斂固渋・止咳",dose:[1,3]},
+ {id:"ougi",name:"黄耆",kana:"オウギ",cat:"補気",eff:"補気升陽・固表止汗",dose:[2,4]},
+ {id:"shouma",name:"升麻",kana:"ショウマ",cat:"解表",eff:"升陽・解表・透発",dose:[0.5,2]},
+ {id:"shini",name:"辛夷",kana:"シンイ",cat:"解表",eff:"通鼻竅・散風寒",dose:[2,3]},
+ {id:"mokko",name:"木香",kana:"モッコウ",cat:"理気",eff:"行気止痛・健脾消食",dose:[1,2]},
+ {id:"uyaku",name:"烏薬",kana:"ウヤク",cat:"理気",eff:"理気止痛・温腎",dose:[2,3]},
+ {id:"shukusha",name:"縮砂",kana:"シュクシャ",cat:"理気",eff:"健脾理気・化湿止嘔",dose:[1,2]},
+ {id:"hakka",name:"薄荷",kana:"ハッカ",cat:"解表",eff:"解表理気・清熱",dose:[1,2]},
+ {id:"keigai",name:"荊芥",kana:"ケイガイ",cat:"解表",eff:"解表祛風",dose:[2,3]},
+ {id:"kyokatsu",name:"羌活",kana:"キョウカツ",cat:"解表",eff:"散寒祛風湿・止痛",dose:[2,3]},
+ {id:"dokukatsu",name:"独活",kana:"ドクカツ",cat:"解表",eff:"散寒祛風湿・止痛",dose:[2,3]},
+ {id:"uikyo",name:"茴香",kana:"ウイキョウ",cat:"温裏",eff:"温中理気・止痛",dose:[2,2]},
+ {id:"shazenshi",name:"車前子",kana:"シャゼンシ",cat:"利水",eff:"利水滲湿・清肝明目・止咳",dose:[3,5]},
+ {id:"goshitsu",name:"牛膝",kana:"ゴシツ",cat:"活血",eff:"活血通経・補肝腎・強筋骨・利水",dose:[3,5]},
+ {id:"chotouko",name:"釣藤鈎",kana:"チョウトウコウ",cat:"平肝",eff:"平肝熄風・清熱降圧",dose:[3,5]},
+ {id:"engosaku",name:"延胡索",kana:"エンゴサク",cat:"活血",eff:"活血行気止痛（止痛効果が強い）",dose:[2,3]},
+ {id:"ryokyo",name:"良姜",kana:"リョウキョウ",cat:"温裏",eff:"温中散寒止痛（胃寒の痛みに）",dose:[0.5,1]},
+ {id:"choji",name:"丁子",kana:"チョウジ",cat:"温裏",eff:"温中降逆・散寒止痛",dose:[0.5,1]},
+];
+const HERB_MAP = {}; HERBS.forEach(h=>HERB_MAP[h.id]=h);
+
+const FORMULAS = [
+ {id:"kakkonto",name:"葛根湯",houshou:"葛根湯証",chiho:"発汗解表・解肌",comp:{kakkon:8,mao:4,keihi:3,shakuyaku:3,kanzo:2,taiso:3,shokyo:1}},
+ {id:"maoto",name:"麻黄湯",houshou:"麻黄湯証",chiho:"発汗解表・宣肺平喘",comp:{mao:5,keihi:4,kyonin:5,kanzo:1.5}},
+ {id:"keishito",name:"桂枝湯",houshou:"桂枝湯証",chiho:"解表・調和営衛",comp:{keihi:4,shakuyaku:4,kanzo:2,taiso:4,shokyo:1.5}},
+ {id:"shosaikoto",name:"小柴胡湯",houshou:"小柴胡湯証",chiho:"和解少陽",comp:{saiko:7,ougon:3,hange:5,ninjin:3,kanzo:2,taiso:3,shokyo:1}},
+ {id:"daisaikoto",name:"大柴胡湯",houshou:"大柴胡湯証",chiho:"和解少陽・瀉下裏実",comp:{saiko:6,ougon:3,shakuyaku:3,hange:4,kijitsu:2,daio:1,taiso:3,shokyo:1}},
+ {id:"shigyakusan",name:"四逆散",houshou:"四逆散証",chiho:"疏肝理気・透邪解鬱",comp:{saiko:5,shakuyaku:4,kijitsu:2,kanzo:2}},
+ {id:"shokenchuto",name:"小建中湯",houshou:"小建中湯証",chiho:"温中補虚・緩急止痛",comp:{keihi:4,shakuyaku:6,kanzo:2,taiso:4,shokyo:1.5}},
+ {id:"keishikashakuyakuto",name:"桂枝加芍薬湯",houshou:"桂枝加芍薬湯証",chiho:"温中緩急・健脾",comp:{keihi:4,shakuyaku:6,kanzo:2,taiso:4,shokyo:1}},
+ {id:"shinbuto",name:"真武湯",houshou:"真武湯証",chiho:"温陽利水",comp:{bukuryo:5,shakuyaku:3,byakujutsu:3,bushi:1,shokyo:1.5}},
+ {id:"maoubushisaishinto",name:"麻黄附子細辛湯",houshou:"麻黄附子細辛湯証",chiho:"温陽散寒・解表",comp:{mao:4,bushi:0.5,saishin:3}},
+ {id:"tokakushigyaku",name:"当帰四逆加呉茱萸生姜湯",houshou:"当帰四逆加呉茱萸生姜湯証",chiho:"温経散寒・養血通脈",comp:{toki:3,keihi:3,shakuyaku:3,kanzo:2,goshuyu:2,saishin:2,shokyo:1}},
+ {id:"goreisan",name:"五苓散",houshou:"五苓散証",chiho:"利水滲湿・化気",comp:{takusha:5,bukuryo:4,chorei:4,byakujutsu:4,keihi:2}},
+ {id:"ryokeijutsukanto",name:"苓桂朮甘湯",houshou:"苓桂朮甘湯証",chiho:"利水・降気上衝",comp:{bukuryo:6,keihi:4,byakujutsu:3,kanzo:2}},
+ {id:"hangeshashinto",name:"半夏瀉心湯",houshou:"半夏瀉心湯証",chiho:"和胃降逆・清熱化湿",comp:{hange:5,ougon:2.5,ouren:1,ninjin:2.5,kanzo:2.5,taiso:2.5,shokyo:1}},
+ {id:"hangekobokuto",name:"半夏厚朴湯",houshou:"半夏厚朴湯証",chiho:"理気化痰・降逆",comp:{hange:6,bukuryo:5,koboku:3,soyo:2,shokyo:1}},
+ {id:"kosoosan",name:"香蘇散",houshou:"香蘇散証",chiho:"理気解表",comp:{kobushi:4,soyo:1,chinpi:2,kanzo:1,shokyo:1}},
+ {id:"heiisan",name:"平胃散",houshou:"平胃散証",chiho:"健脾燥湿・理気和胃",comp:{sojutsu:4,koboku:3,chinpi:3,kanzo:1,taiso:1,shokyo:1}},
+ {id:"hochuekkito",name:"補中益気湯",houshou:"補中益気湯証",chiho:"補気健脾・升陽",comp:{ougi:4,ninjin:4,byakujutsu:3,toki:3,chinpi:2,taiso:1,saiko:2,kanzo:1.5,shokyo:0.5,shouma:0.5}},
+ {id:"rikkunshito",name:"六君子湯",houshou:"六君子湯証",chiho:"補気健脾・化痰",comp:{ninjin:4,byakujutsu:4,bukuryo:4,hange:4,chinpi:2,taiso:2,kanzo:1,shokyo:0.5}},
+ {id:"juzentaihoto",name:"十全大補湯",houshou:"十全大補湯証",chiho:"補気養血",comp:{ninjin:3,ougi:3,byakujutsu:3,bukuryo:3,toki:3,senkyu:3,shakuyaku:3,jio:3,keihi:3,kanzo:1.5}},
+ {id:"ninjinyoeito",name:"人参養栄湯",houshou:"人参養栄湯証",chiho:"補気養血・滋陰",comp:{ninjin:3,ougi:1.5,byakujutsu:4,bukuryo:4,toki:4,jio:4,shakuyaku:2,keihi:2.5,chinpi:2,gomishi:1,kanzo:1}},
+ {id:"tokishakuyakusan",name:"当帰芍薬散",houshou:"当帰芍薬散証",chiho:"養血調経・利水",comp:{toki:3,shakuyaku:4,senkyu:3,bukuryo:4,byakujutsu:4,takusha:4}},
+ {id:"keishibukuryogan",name:"桂枝茯苓丸",houshou:"桂枝茯苓丸証",chiho:"活血化瘀",comp:{keihi:3,bukuryo:3,botanpi:3,tonin:3,shakuyaku:3}},
+ {id:"kamishoyosan",name:"加味逍遥散",houshou:"加味逍遥散証",chiho:"疏肝健脾・養血清熱",comp:{toki:3,shakuyaku:3,byakujutsu:3,bukuryo:3,saiko:3,botanpi:2,sanshishi:2,kanzo:1.5,hakka:1,shokyo:1}},
+ {id:"yokukansan",name:"抑肝散",houshou:"抑肝散証",chiho:"平肝熄風・養血",comp:{toki:3,saiko:2,bukuryo:3,senkyu:3,byakujutsu:3,kanzo:1.5}},
+ {id:"unkeito",name:"温経湯",houshou:"温経湯証",chiho:"温経散寒・養血調経",comp:{toki:3,senkyu:2,shakuyaku:2,keihi:2,bakumondo:4,botanpi:2,ninjin:2,kanzo:2,goshuyu:1,shokyo:1}},
+ {id:"hachimijiogan",name:"八味地黄丸",houshou:"八味地黄丸証",chiho:"温補腎陽",comp:{jio:6,sanyaku:3,sanshuyu:3,takusha:3,bukuryo:3,botanpi:3,keihi:1,bushi:1}},
+ {id:"ryokyojutsukanto",name:"苓姜朮甘湯",houshou:"苓姜朮甘湯証",chiho:"温陽利水・除寒湿",comp:{bukuryo:6,kankyo:3,byakujutsu:3,kanzo:2}},
+ {id:"maokyokansekito",name:"麻杏甘石湯",houshou:"麻杏甘石湯証",chiho:"宣肺清熱・止咳平喘",comp:{mao:4,kyonin:4,kanzo:2,sekko:10}},
+ {id:"bakumondoto",name:"麦門冬湯",houshou:"麦門冬湯証",chiho:"養陰潤肺・止咳",comp:{bakumondo:10,hange:5,ninjin:2,kanzo:2,taiso:3}},
+ {id:"keishikaryu",name:"桂枝加竜骨牡蛎湯",houshou:"桂枝加竜骨牡蛎湯証",chiho:"調和営衛・潜陽安神",comp:{keihi:3,shakuyaku:3,kanzo:2,taiso:3,shokyo:1,ryukotsu:3,borei:3}},
+ {id:"saikokaryukotsu",name:"柴胡加竜骨牡蛎湯",houshou:"柴胡加竜骨牡蛎湯証",chiho:"和解少陽・鎮静安神",comp:{saiko:5,ougon:2.5,hange:4,ninjin:2.5,bukuryo:3,ryukotsu:2.5,borei:2.5,keihi:3,taiso:2.5,daio:1,shokyo:1}},
+ {id:"jumihaidokuto",name:"十味敗毒湯",houshou:"十味敗毒湯証",chiho:"解表祛風・排毒化湿",comp:{kakkon:3,bofu:1.5,keigai:1.5,rengyo:1.5,dokukatsu:1.5,saishin:1,kikyo:1.5,saiko:2,chinpi:1.5,kanzo:1,shokyo:1}},
+ {id:"tokakujokito",name:"桃核承気湯",houshou:"桃核承気湯証",chiho:"活血化瘀・瀉下攻積",comp:{tonin:5,daio:3,keihi:4,boushou:2,kanzo:1.5}},
+ {id:"rokumigan",name:"六味丸",houshou:"六味丸証",chiho:"滋補腎陰",comp:{jio:6,sanyaku:3,sanshuyu:3,takusha:3,bukuryo:3,botanpi:3}},
+ {id:"goshajinkigan",name:"牛車腎気丸",houshou:"牛車腎気丸証",chiho:"温補腎陽・利水消腫",comp:{jio:5,sanyaku:3,sanshuyu:3,takusha:3,bukuryo:3,botanpi:3,keihi:1,bushi:1,shazenshi:3,goshitsu:3}},
+ {id:"shichimotsukoka",name:"七物降下湯",houshou:"七物降下湯証",chiho:"補血平肝・清熱降圧",comp:{toki:3,shakuyaku:3,senkyu:3,jio:3,ougi:3,oubaku:1.5,chotouko:3}},
+ {id:"saikokeihi",name:"柴胡桂枝湯",houshou:"柴胡桂枝湯証",chiho:"和解少陽・調和営衛",comp:{saiko:5,keihi:2.5,ougon:2,shakuyaku:2,hange:4,ninjin:2,kanzo:1.5,taiso:2,shokyo:1}},
+ {id:"ninjinto",name:"人参湯",houshou:"人参湯証",chiho:"温中健脾・補気散寒",comp:{ninjin:3,byakujutsu:3,kankyo:2,kanzo:3}},
+ {id:"anchukusan",name:"安中散",houshou:"安中散証",chiho:"温中止痛・制酸理気",comp:{keihi:3,engosaku:3,borei:3,uikyo:1.5,kanzo:1,shukusha:2,ryokyo:0.5}},
+ {id:"saireito",name:"柴苓湯",houshou:"柴苓湯証",chiho:"和解少陽・利水化湿",comp:{saiko:7,ougon:3,hange:5,ninjin:3,kanzo:2,taiso:3,shokyo:1,takusha:5,bukuryo:4,chorei:4,byakujutsu:4,keihi:2}},
+ {id:"saibokuto",name:"柴朴湯",houshou:"柴朴湯証",chiho:"和解少陽・理気化痰",comp:{saiko:7,ougon:3,hange:5,ninjin:3,kanzo:2,taiso:3,shokyo:1,koboku:3,bukuryo:5,soyo:2}},
+ {id:"jidabokiippo",name:"治打撲一方",houshou:"治打撲一方証",chiho:"活血祛瘀・消腫止痛",comp:{daio:2,senkyu:3,keihi:3,toki:3,oubaku:1.5,choji:1}},
+ {id:"hainosankyu",name:"排膿散及湯",houshou:"排膿散及湯証",chiho:"排膿解毒・消腫散結",comp:{kikyo:3,kijitsu:3,shakuyaku:6,taiso:3,shokyo:1.5,kanzo:3}},
+];
+const FORMULA_MAP = {}; FORMULAS.forEach(f=>FORMULA_MAP[f.id]=f);
+
+const HAKKO_OPTIONS = {
+  inyo:["陽","陰"], kyojitsu:["実","虚"], kannetsu:["寒","熱"], hyori:["表","裏"]
+};
+const HAKKO_LABEL = {inyo:"陰陽",kyojitsu:"虚実",kannetsu:"寒熱",hyori:"表裏"};
+
+const KIKETSU_OPTIONS = ["気虚","気滞","気逆","血虚","瘀血","水滞","陰虚","陽虚","該当せず"];
+const GOZOU_OPTIONS = ["肝","心","脾","肺","腎","該当せず"];
+const ROKUBYOI_OPTIONS = ["太陽病","少陽病","陽明病","太陰病","少陰病","厥陰病","該当せず"];
+
+const ROKUBYOI_MEANING = {
+  "太陽病":"病邪が体表にあり、悪寒・発熱・頭痛・項背部のこわばりなどを呈する、急性熱病の初期段階です。",
+  "少陽病":"病邪が表と裏の間（半表半裏）にあり、往来寒熱・胸脇苦満・口苦などを呈する段階です。",
+  "陽明病":"病邪が裏に入り、強い熱証・便秘・腹部膨満など実熱が極まった段階です。",
+  "太陰病":"脾の機能低下により、下痢・腹満・食欲不振など虚寒の消化器症状を呈する段階です。",
+  "少陰病":"全身の陽気が衰え、強い悪寒・倦怠感・四肢厥冷など虚寒が深まった段階です。",
+  "厥陰病":"陰陽の調節が乱れ、四肢の厳しい冷えや寒熱の錯雑した症状を呈する、病の最終段階です。",
+  "該当せず":"急性発熱性疾患ではなく、六病位（傷寒論の病期分類）を適用する対象ではありません。"
+};
+
+const HAKKO_MEANING = {
+  inyo: {
+    "陽":"発熱・口渇・顔面紅潮・充血など、機能が亢進し熱性に偏った所見が陽証を示します。",
+    "陰":"倦怠感・冷え・顔色不良など、機能が低下し寒性に偏った所見が陰証を示します。"
+  },
+  kyojitsu: {
+    "実":"脈が力強い、症状が激しい、体力が充実しているなど、邪気が強く正気も充実している所見が実証を示します。",
+    "虚":"脈が弱い、症状が緩慢、倦怠感が強いなど、正気（体力・抵抗力）が低下している所見が虚証を示します。"
+  },
+  kannetsu: {
+    "寒":"悪寒・冷え・無汗・顔色が悪いなど、寒さに傾いた所見が寒証を示します。",
+    "熱":"発熱・口渇・顔面紅潮・黄色い舌苔など、熱に傾いた所見が熱証を示します。"
+  },
+  hyori: {
+    "表":"悪寒・頭痛・項背部のこわばりなど、体表に現れる症状が中心の場合は表証です。",
+    "裏":"消化器症状・倦怠感・内臓機能の異常など、体の内部に病態の中心がある場合は裏証です。"
+  }
+};
+
+const KIKETSU_MEANING = {
+  "気虚":"気（生命活動のエネルギー）の不足。倦怠感・気力低下・食欲不振などを呈します。",
+  "気滞":"気の巡りの停滞。胸脇部の張り・抑うつ感・易怒などを呈します。",
+  "気逆":"気が逆上する状態。げっぷ・悪心・突き上げ感（気上衝）などを呈します。",
+  "血虚":"血の不足。顔色不良・めまい・乾燥傾向・爪や毛髪の異常などを呈します。",
+  "瘀血":"血の停滞。月経異常・刺すような痛み・下腹部の抵抗圧痛などを呈します。",
+  "水滞":"水分代謝の異常。むくみ・めまい・尿量異常などを呈します。",
+  "陰虚":"陰液（津液・血など）の不足。のぼせ・口や皮膚の乾燥・寝汗などを呈します。",
+  "陽虚":"陽気（体を温める力）の不足。冷え・頻尿・倦怠感などを呈します。"
+};
+const GOZOU_MEANING = {
+  "肝":"自律神経・情緒・筋の調節と関連。怒りやすさ・抑うつ・筋緊張などに現れます。",
+  "心":"血脈・精神活動と関連。動悸・不眠・不安感などに現れます。",
+  "脾":"消化吸収・気血の生成と関連。食欲不振・軟便・倦怠感などに現れます。",
+  "肺":"呼吸・体表防御と関連。咳・息切れ・皮膚や鼻の異常などに現れます。",
+  "腎":"先天の精・生殖・骨・水分代謝と関連。腰痛・頻尿・冷えなどに現れます。"
+};
+
+const CASES = [
+// ── 既存症例1〜10（kotenseki追加） ──
+ {id:1,title:"症例1：感冒（表実証）",
+  text:"32歳男性。昨夜から悪寒・発熱（38.2℃）。頭痛と項背部のこわばりが強く、発汗はみられない。脈は浮いて緊張が強い。舌苔は薄白。",
+  hakko:{inyo:"陽",kyojitsu:"実",kannetsu:"寒",hyori:"表"},
+  rokubyoi:"太陽病",
+  kiketsu:["該当せず"], gozou:["該当せず"],
+  houshou:"葛根湯証", formula:"kakkonto",
+  explanation:"発熱・悪寒・無汗で項背部のこわばりを伴う太陽病表実証であり、発汗解表・解肌作用を持つ葛根湯が適応する代表例です。急性発熱性疾患のため、診断には気血水ではなく六病位を用います。",
+  shinsatsu:{ganshoku:"顔色は赤みを帯びやや紅潮している",hyojo:"苦しそうだが活力は残っている",zetsudan:"舌質：淡紅　舌苔：薄白苔",myakudan:"浮緊（浮いていて力強い）",fukudan:"腹力充実、腹直筋の緊張（＋）"},
+  kotenseki:{source:"傷寒論（張仲景・後漢）第31条",quote:"太陽病、項背強几几、無汗、悪風、葛根湯主之。",modern:"「項背部のこわばりがひどく、汗が出ず、風を嫌がる太陽病には葛根湯を用いよ」という意味です。葛根が主薬として筋肉のこわばりを解きほぐし、麻黄・桂皮が発汗解表し、芍薬・甘草が筋緊張を和らげます。後世の日本では感冒初期薬として最もよく知られた方剤です。"}},
+ {id:2,title:"症例2：感冒（表虚証）",
+  text:"45歳女性。2日前から微熱（37.3℃）と悪風。じっとりとした自汗があり、風に当たると悪寒が増す。脈は浮いてやや弱い。倦怠感あり。",
+  hakko:{inyo:"陽",kyojitsu:"虚",kannetsu:"寒",hyori:"表"},
+  rokubyoi:"太陽病",
+  kiketsu:["該当せず"], gozou:["該当せず"],
+  houshou:"桂枝湯証", formula:"keishito",
+  explanation:"自汗・悪風を伴う太陽病表虚証で、営衛を調和する桂枝湯の代表的な適応です。麻黄剤のような強い発汗剤は不適切です。急性発熱性疾患のため、診断には気血水ではなく六病位を用います。",
+  shinsatsu:{ganshoku:"顔色はやや蒼白、じっとり汗ばんでいる",hyojo:"ぐったりした倦怠感のある表情",zetsudan:"舌質：淡白　舌苔：薄白苔",myakudan:"浮緩（浮いていてやや弱い）",fukudan:"腹力弱、腹部全体に軟弱感"},
+  kotenseki:{source:"傷寒論（張仲景・後漢）第12条",quote:"太陽中風、陽浮而陰弱…汗出悪風者、桂枝湯主之。",modern:"「表の気が浮いて発熱し、裏の気が弱く、汗が出て風を嫌がる太陽中風には桂枝湯を用いよ」という意味です。桂皮・生姜で体を温め、芍薬・大棗で営血を補い、甘草で調和する5味の方剤です。葛根湯・麻黄湯より穏やかで虚証向けの表証薬です。"}},
+ {id:3,title:"症例3：感冒（表実・無汗・関節痛）",
+  text:"28歳男性、スポーツ選手。突然の高熱（39.5℃）、悪寒戦慄、全身の関節痛と腰痛。発汗はなく、皮膚は乾燥して熱感が強い。脈は浮いて力強い（浮緊有力）。",
+  hakko:{inyo:"陽",kyojitsu:"実",kannetsu:"寒",hyori:"表"},
+  rokubyoi:"太陽病",
+  kiketsu:["該当せず"], gozou:["該当せず"],
+  houshou:"麻黄湯証", formula:"maoto",
+  explanation:"無汗・強い悪寒・関節痛を伴う実証の太陽病で、葛根湯より強力な発汗解表作用を持つ麻黄湯が適応します。体力充実者に用いる点が要点です。急性発熱性疾患のため、診断には気血水ではなく六病位を用います。",
+  shinsatsu:{ganshoku:"顔色は赤く強い紅潮、皮膚は乾燥している",hyojo:"苦悶表情、眉間にしわを寄せている",zetsudan:"舌質：淡紅　舌苔：薄白苔（乾燥気味）",myakudan:"浮緊有力（力強く浮いている）",fukudan:"腹力充実、腹直筋の強い緊張"},
+  kotenseki:{source:"傷寒論（張仲景・後漢）第35条",quote:"太陽病、頭痛、発熱、身疼、腰痛、骨節疼痛、悪風、無汗而喘者、麻黄湯主之。",modern:"「頭痛・発熱・全身の痛み・腰痛・関節痛があり、風を嫌い、汗が出ず喘鳴のある太陽病には麻黄湯を用いよ」という意味です。麻黄の峻発汗作用が中心で、実証者専用の強力な解表剤です。虚証・高齢者・心臓病のある方には禁忌となる点も重要な教育ポイントです。"}},
+ {id:4,title:"症例4：往来寒熱と胸脇苦満",
+  text:"50歳男性。1週間続く微熱が午後に上がり夜間に下がる往来寒熱。食欲不振、軽度の悪心。右季肋部を圧迫すると抵抗・圧痛（胸脇苦満）を認める。舌苔は薄黄。",
+  hakko:{inyo:"陽",kyojitsu:"実",kannetsu:"熱",hyori:"表"},
+  rokubyoi:"少陽病",
+  kiketsu:["該当せず"], gozou:["該当せず"],
+  houshou:"小柴胡湯証", formula:"shosaikoto",
+  explanation:"往来寒熱・胸脇苦満は少陽病の典型像であり、和解少陽の小柴胡湯が第一選択となります。急性発熱性疾患のため、診断には気血水ではなく六病位を用います。",
+  shinsatsu:{ganshoku:"顔色はやや黄ばみがあり頬に紅みがある",hyojo:"倦怠感があり、やや不機嫌そうな表情",zetsudan:"舌質：淡紅〜紅　舌苔：薄黄苔",myakudan:"弦（弦のように張り、やや数）",fukudan:"右季肋部に抵抗・圧痛（胸脇苦満）著明"},
+  kotenseki:{source:"傷寒論（張仲景・後漢）第96条",quote:"傷寒五六日、中風、往来寒熱、胸脇苦満、嘿嘿不欲飲食、心煩喜嘔…小柴胡湯主之。",modern:"「傷寒になって5〜6日で発熱と解熱を繰り返し（往来寒熱）、右脇腹が張って苦しく、食欲がなく、心が落ち着かず嘔吐しやすいものには小柴胡湯を」という意味です。柴胡が少陽の邪を散らし、黄芩が炎症を清め、半夏が悪心を止め、人参・大棗・甘草が正気を補います。"}},
+ {id:5,title:"症例5：胸脇苦満＋便秘の実証体格",
+  text:"55歳男性、体格良好で筋肉質。胸脇苦満が強く、上腹部の張りと便秘（3日に1回）を伴う。怒りやすく、顔面紅潮あり。脈は実で力強い。",
+  hakko:{inyo:"陽",kyojitsu:"実",kannetsu:"熱",hyori:"表"},
+  rokubyoi:"少陽病",
+  kiketsu:["該当せず"], gozou:["該当せず"],
+  houshou:"大柴胡湯証", formula:"daisaikoto",
+  explanation:"小柴胡湯証に裏実（便秘・腹部膨満）を伴った少陽陽明合病で、瀉下作用を併せ持つ大柴胡湯が適応します。体力充実者向けです。六病位としては少陽病を主体に陽明病の裏実を兼ねた状態で、診断には気血水ではなく六病位を用います。",
+  shinsatsu:{ganshoku:"顔色は赤く充血した印象、体格充実",hyojo:"怒りっぽく険しい表情、額に汗",zetsudan:"舌質：紅　舌苔：黄苔",myakudan:"弦実（弦で力強い）",fukudan:"強い胸脇苦満と心下部〜側腹部に充実した抵抗"},
+  kotenseki:{source:"傷寒論（張仲景・後漢）第103条",quote:"太陽病過経十余日、反二三下之、後四五日、柴胡証仍在者…大柴胡湯下之則愈。",modern:"「太陽病から10日以上経過し、下法を繰り返しても柴胡証が残り腹部充実感があるものは、大柴胡湯で瀉下せよ」という意味です。小柴胡湯に大黄・枳実・芍薬が加わり、少陽病と陽明病が合した実証に使用します。体力充実者の高血圧・肥満・脂質異常症にも現代では応用されます。"}},
+ {id:6,title:"症例6：慢性的な倦怠感と食欲不振",
+  text:"60歳女性。数か月続く全身倦怠感、食後の強い眠気、食欲不振、軽度の息切れ。顔色は萎黄。舌は淡で胖大、脈は弱い。立っていると疲れやすい。",
+  hakko:{inyo:"陰",kyojitsu:"虚",kannetsu:"寒",hyori:"裏"},
+  rokubyoi:"該当せず",
+  kiketsu:["気虚"], gozou:["脾"],
+  houshou:"補中益気湯証", formula:"hochuekkito",
+  explanation:"全身倦怠感・食欲不振・気力低下を中心とする脾胃気虚証で、補気健脾・升陽の補中益気湯が適応します。",
+  shinsatsu:{ganshoku:"顔色は萎黄（黄土色）でハリがなく蒼白",hyojo:"元気なく疲れ果てたぼんやりとした表情",zetsudan:"舌質：淡白・胖大　舌苔：薄白苔　歯痕（＋）",myakudan:"沈細弱（沈んで細く弱い）",fukudan:"腹力著しく低下（極軟）、臍周囲に拍動触れることあり"},
+  kotenseki:{source:"内外傷辨惑論（李東垣・金元時代・1247年）",quote:"脾胃気虚、怠惰嗜臥、四肢不収、肢節疼痛…補中益気湯主之。",modern:"「脾胃の気が虚して、だるくて横になりたがり、手足に力が入らないものには補中益気湯を」という意味です。金元の名医・李東垣（李杲）が創方した補気升陽の代表方剤です。黄耆・人参・白朮が気を補い、升麻・柴胡が下がった気を引き上げます（甘温除熱法）。"}},
+ {id:7,title:"症例7：めまいと立ちくらみ",
+  text:"38歳女性。立ち上がる際のめまい・立ちくらみを繰り返す。動悸を伴うことがあり、胃のあたりから何かが突き上がる感覚（気上衝）を自覚する。むくみやすい。",
+  hakko:{inyo:"陰",kyojitsu:"虚",kannetsu:"寒",hyori:"裏"},
+  rokubyoi:"該当せず",
+  kiketsu:["水滞"], gozou:["心"],
+  houshou:"苓桂朮甘湯証", formula:"ryokeijutsukanto",
+  explanation:"水滞による気の上衝（めまい・動悸）が中心病態で、利水・降気作用を持つ苓桂朮甘湯が適応します。",
+  shinsatsu:{ganshoku:"顔色はやや蒼白、目の下にクマがある",hyojo:"めまいで不安げな、青ざめた表情",zetsudan:"舌質：淡白　舌苔：白滑苔（水分を帯びる）",myakudan:"沈弦（沈んで弦のように張る）",fukudan:"臍上部に振水音（＋）、心下部に痞え感"},
+  kotenseki:{source:"傷寒論（張仲景・後漢）第67条",quote:"傷寒若吐若下後、心下逆満、気上衝胸、起則頭眩、脈沈緊…苓桂朮甘湯主之。",modern:"「吐下させた後に、みぞおちが逆に張って気が胸に突き上がり、立ち上がると頭がくらくらし、脈が沈んで緊張するものには苓桂朮甘湯を」という意味です。茯苓で水を下ろし、桂皮で気の上衝を抑え、白朮で脾を温め水を燥かし、甘草で調和します。現代では起立性低血圧・耳鳴り・動悸にも応用されます。"}},
+ {id:8,title:"症例8：月経不順と下腹部の抵抗",
+  text:"34歳女性。月経周期が不規則で、月経時に強い下腹部痛と暗赤色の血塊を伴う。下腹部を押すと抵抗・圧痛（瘀血の腹証）を認める。肩こりと顔のほてりもある。",
+  hakko:{inyo:"陽",kyojitsu:"実",kannetsu:"熱",hyori:"裏"},
+  rokubyoi:"該当せず",
+  kiketsu:["瘀血"], gozou:["肝"],
+  houshou:"桂枝茯苓丸証", formula:"keishibukuryogan",
+  explanation:"下腹部の瘀血所見と月経異常を特徴とする瘀血証で、活血化瘀の桂枝茯苓丸が代表的な適応です。",
+  shinsatsu:{ganshoku:"顔色は暗めで唇に色素沈着あり（瘀血顔貌）",hyojo:"下腹部痛で眉間にしわを寄せた苦悶表情",zetsudan:"舌質：暗紅〜紫舌　舌下静脈怒張　舌苔：薄白",myakudan:"沈渋（沈んで流れが悪い）",fukudan:"左下腹部に圧痛・抵抗（小腹急結）"},
+  kotenseki:{source:"金匱要略（張仲景・後漢）第20篇",quote:"婦人宿有症病、経断未及三月而得漏下不止、胎動在臍上者…桂枝茯苓丸主之。",modern:"「もともと腹部に塊（症）のある婦人が、妊娠3カ月で出血が止まらず臍上に胎動がある場合は桂枝茯苓丸で瘀血を除け」という意味です。桂皮・茯苓・牡丹皮・桃仁・芍薬の5味による活血化瘀剤で、現代では月経不順・子宮筋腫・更年期の瘀血証に最もよく用いられます。"}},
+ {id:9,title:"症例9：冷え症とめまい（血虚水滞）",
+  text:"29歳女性。冷え症が強く、特に下肢が冷たい。月経時に軽い下腹部痛、めまい、むくみやすい。顔色は不良で疲れやすい。舌質は淡白。",
+  hakko:{inyo:"陰",kyojitsu:"虚",kannetsu:"寒",hyori:"裏"},
+  rokubyoi:"該当せず",
+  kiketsu:["血虚","水滞"], gozou:["肝","脾"],
+  houshou:"当帰芍薬散証", formula:"tokishakuyakusan",
+  explanation:"血虚と水滞が併存する虚証の婦人科疾患で、養血・利水を兼ねる当帰芍薬散が適応します。桂枝茯苓丸（瘀血実証）との鑑別が要点です。",
+  shinsatsu:{ganshoku:"顔色は蒼白で血の気がなく、顔に軽いむくみ",hyojo:"疲労感でぼんやりした、元気のない表情",zetsudan:"舌質：淡白　舌苔：薄白苔",myakudan:"細弱（細くて弱い）",fukudan:"腹部軟弱、臍周囲に水分穴の圧痛あり"},
+  kotenseki:{source:"金匱要略（張仲景・後漢）第20篇",quote:"婦人腹中諸疾痛、当帰芍薬散主之。",modern:"「婦人のさまざまな腹痛に当帰芍薬散を用いよ」という簡潔な条文です。当帰・川芎・芍薬で血虚を補い血行を改善し、茯苓・白朮・沢瀉で水滞（浮腫・めまい）を取り除く、補血利水の代表方剤です。桂枝茯苓丸（瘀血・実証）と対比して「虚証・血虚の婦人科疾患」に用いる重要な鑑別ポイントです。"}},
+ {id:10,title:"症例10：高齢者の腰痛と頻尿",
+  text:"72歳男性。慢性的な腰痛と夜間頻尿（3〜4回／夜）。下肢の冷えとだるさが強く、足腰に力が入らない感覚がある。脈は沈んで弱い。",
+  hakko:{inyo:"陰",kyojitsu:"虚",kannetsu:"寒",hyori:"裏"},
+  rokubyoi:"該当せず",
+  kiketsu:["陽虚"], gozou:["腎"],
+  houshou:"八味地黄丸証", formula:"hachimijiogan",
+  explanation:"腰痛・夜間頻尿・下肢の冷えを伴う腎陽虚証の典型で、温補腎陽の八味地黄丸が代表的な適応です。",
+  shinsatsu:{ganshoku:"顔色は暗くくすんだ黒ずんだ色調（腎虚顔貌）",hyojo:"疲労・虚脱感が強くどんよりとした表情",zetsudan:"舌質：淡白潤　舌苔：薄白",myakudan:"沈細弱（沈んで細く弱い）",fukudan:"臍下軟弱（臍下不仁）、下腹部全体に弛緩感"},
+  kotenseki:{source:"金匱要略（張仲景・後漢）第6篇",quote:"虚労腰痛、少腹拘急、小便不利者、八味腎気丸主之。",modern:"「虚弱による腰痛、下腹部のひきつり、排尿困難のあるものには八味腎気丸（八味地黄丸）を用いよ」という意味です。六味地黄丸（腎陰を補う）に桂皮・附子（温陽）を加えた方剤で、腎陽虚証の代表処方です。「腎は命門の火を蔵す」という理論に基づき、加齢による冷え・腰痛・頻尿・性機能低下に広く応用されます。"}},
+// ── 新規症例11〜20 ──
+ {id:11,title:"症例11：神経過敏と不眠（陰陽失調）",
+  text:"40歳男性。仕事のストレスから不眠と動悸が続く。夜中に目が覚めて寝つけず、昼間も疲れやすく集中力が低下。夢が多く、小便が近い。腹部は軟弱。脈は浮きやすく細い。",
+  hakko:{inyo:"陰",kyojitsu:"虚",kannetsu:"寒",hyori:"裏"},
+  rokubyoi:"該当せず",
+  kiketsu:["気虚","気逆"], gozou:["心","腎"],
+  houshou:"桂枝加竜骨牡蛎湯証", formula:"keishikaryu",
+  explanation:"陰陽不交・精気固渋不能の状態で、桂枝湯に龍骨・牡蛎を加え精神を安定させ不眠・神経過敏を治療します。金匱要略「失精家」の方証であり、虚労に伴う精神症状の代表方剤です。",
+  shinsatsu:{ganshoku:"顔色はやや蒼白で疲れた印象",hyojo:"不安げで目にクマがある",zetsudan:"舌質：淡白　舌苔：薄白",myakudan:"浮細（浮いていて細い）",fukudan:"腹力弱、腹直筋に軽度の緊張あり（腹直筋拘急軽度）"},
+  kotenseki:{source:"金匱要略（張仲景・後漢）血痺虚労病篇",quote:"夫失精家、少腹弦急、陰頭寒、目眩、髪落、脈極虚芤遅…桂枝加竜骨牡蛎湯主之。",modern:"「精を漏らしやすい（または精力が衰えた）人が、下腹部のひきつり・陰部の冷え・目眩・脱毛を訴え脈が極めて弱い場合は桂枝加竜骨牡蛎湯を用いよ」という意味です。桂枝湯で表虚を治し、龍骨・牡蛎で精神を落ち着かせ精気を固めます。現代では不眠・神経症・夜尿症・ED・夢精に広く応用されます。"}},
+ {id:12,title:"症例12：精神不安と不眠（少陽・痰熱）",
+  text:"48歳男性。高ストレスの管理職。不眠（入眠困難・中途覚醒）、動悸、胸部の圧迫感、イライラ、口苦がある。頭重感と肩こりも強い。便は硬め。脈は弦。",
+  hakko:{inyo:"陽",kyojitsu:"実",kannetsu:"熱",hyori:"表"},
+  rokubyoi:"少陽病",
+  kiketsu:["該当せず"], gozou:["該当せず"],
+  houshou:"柴胡加竜骨牡蛎湯証", formula:"saikokaryukotsu",
+  explanation:"少陽病に痰熱が加わり心神が乱れた状態です。傷寒論では下法後の胸満・煩驚・妄言・小便不利に用います。柴胡・黄芩で少陽の熱を清め、龍骨・牡蛎・茯苓で精神を安定させます。",
+  shinsatsu:{ganshoku:"顔色は赤みがありやや紅潮",hyojo:"緊張感があり眉間にしわを寄せた表情",zetsudan:"舌質：紅　舌苔：黄腻苔",myakudan:"弦滑（弦でなめらかに流れる）",fukudan:"右季肋部に軽度の胸脇苦満、臍周囲に力あり"},
+  kotenseki:{source:"傷寒論（張仲景・後漢）第107条",quote:"傷寒八九日、下之、胸満煩惊、小便不利、讝語、一身尽重、不可転側者、柴胡加竜骨牡蛎湯主之。",modern:"「傷寒8〜9日で下法を用いた後、胸が張り、びくびくと驚きやすく、小便が出にくく、うわごとを言い、全身が重く寝返りが打てないものには柴胡加竜骨牡蛎湯を用いよ」という意味です。現代では高血圧・神経症・更年期の精神不安・ADHD様症状などに応用されます。"}},
+ {id:13,title:"症例13：皮膚の化膿性疾患（表熱湿毒）",
+  text:"22歳男性。顔面・背中を中心に多数の炎症性ざ瘡（にきび）が出現。発赤・腫脹・膿栓を伴う。皮膚は脂っぽく、ストレス時に悪化。大便は軟便気味。",
+  hakko:{inyo:"陽",kyojitsu:"実",kannetsu:"熱",hyori:"表"},
+  rokubyoi:"該当せず",
+  kiketsu:["気滞"], gozou:["肺","肝"],
+  houshou:"十味敗毒湯証", formula:"jumihaidokuto",
+  explanation:"皮膚の表在する熱毒・湿毒を解毒排膿する方剤です。葛根・独活・柴胡で解表し、荊芥・防風・連翹で熱毒を清め、桔梗・甘草で排膿を促します。江戸の名医・華岡青洲が創方した日本独自の処方です。",
+  shinsatsu:{ganshoku:"顔色は脂ぎって赤みがある",hyojo:"皮疹を気にして自信なさそうな表情",zetsudan:"舌質：紅　舌苔：黄腻苔（黄色く粘る）",myakudan:"浮数（浮いていて速い）",fukudan:"腹力は中等度、腹部に特記すべき異常所見なし"},
+  kotenseki:{source:"瘍科方筌（華岡青洲・江戸後期・日本）",quote:"十味敗毒湯。治諸般瘡毒、排膿、初起悪寒発熱者。",modern:"「あらゆる皮膚の化膿性疾患・毒を排出し、発病初期の悪寒・発熱を伴うものに用いる」という意味です。中国の万病回春（荊防敗毒散）をベースに、江戸時代の外科名医・華岡青洲が日本人の体質に合わせて改良した方剤です。急性期の化膿性皮膚疾患（にきび・膿皮症・蕁麻疹・アトピー）に現代でも広く使われます。"}},
+ {id:14,title:"症例14：月経困難と下腹部の蓄血実証",
+  text:"32歳女性。毎月の月経時に激烈な下腹部痛があり鎮痛剤でも不十分。月経血は暗赤色で凝血塊が多い。月経前からイライラし気が高ぶる（精神興奮）。便秘傾向（2〜3日に1回）。顔面紅潮あり。",
+  hakko:{inyo:"陽",kyojitsu:"実",kannetsu:"熱",hyori:"裏"},
+  rokubyoi:"該当せず",
+  kiketsu:["瘀血"], gozou:["肝"],
+  houshou:"桃核承気湯証", formula:"tokakujokito",
+  explanation:"下焦に瘀血と熱が結した蓄血実証の代表方剤です。桃仁・桂皮で瘀血を化し、大黄・芒硝で便通を下して熱を清め、甘草で緩和します。桂枝茯苓丸（虚実中間証）より実証・精神興奮を伴う場合に適します。",
+  shinsatsu:{ganshoku:"顔色は赤みを帯び紅潮しやすい",hyojo:"下腹部痛と精神興奮で険しい表情",zetsudan:"舌質：暗紅　舌苔：黄苔　舌下静脈怒張",myakudan:"沈実（沈んで力強い）",fukudan:"左腸骨窩〜臍下部に強い圧痛・抵抗（小腹急結）"},
+  kotenseki:{source:"傷寒論（張仲景・後漢）第106条",quote:"太陽病不解、熱結膀胱、其人如狂、血自下、下者愈…外解已、但少腹急結者、乃可攻之、宜桃核承気湯。",modern:"「太陽病が解けず熱が下焦（膀胱）に結し、狂ったような状態になるものに桃核承気湯がよい」という意味です。下焦の瘀血・熱結を攻下する代表方剤で、現代では月経困難症・子宮内膜症・更年期の精神興奮を伴う瘀血証に用います。桂枝茯苓丸（緩和）と対比して、より急迫・実証な場合に選択します。"}},
+ {id:15,title:"症例15：腎陰虚と口渇・のぼせ",
+  text:"65歳女性。閉経後から口渇・手足のほてり・盗汗が出現。腰がだるく下肢に力が入りにくい。夕方になると微熱感（五心煩熱）がある。排尿は頻繁だが少量。脈は細数。",
+  hakko:{inyo:"陰",kyojitsu:"虚",kannetsu:"熱",hyori:"裏"},
+  rokubyoi:"該当せず",
+  kiketsu:["陰虚"], gozou:["腎"],
+  houshou:"六味丸証", formula:"rokumigan",
+  explanation:"腎陰虚証の代表方剤です。地黄・山薬・山茱萸で腎肝脾の陰を補い（三補）、沢瀉・茯苓・牡丹皮で湿熱・余邪を取り除きます（三瀉）。八味地黄丸から桂皮・附子を除いた方剤で、冷えのない陰虚証に用います。",
+  shinsatsu:{ganshoku:"顔面に軽い紅潮（午後から増強する潮熱）",hyojo:"疲労感があるが内熱感で落ち着かない表情",zetsudan:"舌質：紅絳　舌苔：少苔または剥苔",myakudan:"細数（細くて速い）",fukudan:"腹力は中等度〜やや弱、臍下部に軽度の弛緩感"},
+  kotenseki:{source:"小児薬証直訣（銭乙・宋・1119年）",quote:"地黄丸、治腎怯失音、囟開不合、神不足、目中白睛多、面色（白光）白等方。（成人への応用は後世）",modern:"「腎の弱りによる声かすれ・大泉門の閉合不全・精神的弱さを持つ小児に用いる」という意味の小児科処方が起源です。宋代の小児科名医・銭乙が創方し、後に成人の腎陰虚にも応用されるようになりました。現代では更年期・老化による口渇・ほてり・盗汗・腰痛（冷えなし）に用います。"}},
+ {id:16,title:"症例16：腎陽虚と下肢浮腫（腎虚水滞）",
+  text:"72歳男性。慢性腰痛と両下肢の浮腫（むくみ）が続く。夜間頻尿は5〜6回。下肢に冷えとしびれ感あり。排尿困難（排尿開始まで時間がかかる）。腹部軟弱で腎兪部が冷たい。",
+  hakko:{inyo:"陰",kyojitsu:"虚",kannetsu:"寒",hyori:"裏"},
+  rokubyoi:"該当せず",
+  kiketsu:["陽虚","水滞"], gozou:["腎"],
+  houshou:"牛車腎気丸証", formula:"goshajinkigan",
+  explanation:"八味地黄丸に車前子（利水）・牛膝（補腎利水活血）を加えた方剤です。腎陽虚に水滞（浮腫・排尿障害）が加わった状態に用います。八味地黄丸より利水作用が強く、下肢浮腫・しびれに優れます。",
+  shinsatsu:{ganshoku:"顔色は暗く黒ずんだ印象（腎虚顔貌）に浮腫が加わる",hyojo:"疲労感・虚脱感が強く下肢のだるさで苦しそう",zetsudan:"舌質：淡白潤または淡紫　舌苔：薄白",myakudan:"沈細弱（沈んで細く弱い）",fukudan:"臍下全体に著しい軟弱感（臍下不仁）、腎兪部の冷え"},
+  kotenseki:{source:"済生方（厳用和・宋・1253年）",quote:"加減腎気丸。治腎虚腰重脚腫、小便不利…車前子・牛膝を加えることを特徴とする。",modern:"「腎虚による腰の重だるさ・足のむくみ・排尿困難に用いる」という意味です。宋代の厳用和が八味地黄丸に車前子（利尿）・牛膝（下肢への誘経）を加えて改良した方剤です。現代では高齢者の腰痛・下肢浮腫・夜間頻尿・前立腺肥大による排尿障害に最も汎用される腎虚方剤の一つです。"}},
+ {id:17,title:"症例17：更年期高血圧と肝血虚",
+  text:"58歳女性。更年期から頭重感・耳鳴り・ほてりが出現し、血圧が高め（145/92 mmHg）。肩こりと手足のしびれがあり、眠りが浅い。顔色はくすみがあり、皮膚・髪が乾燥している。",
+  hakko:{inyo:"陰",kyojitsu:"虚",kannetsu:"熱",hyori:"裏"},
+  rokubyoi:"該当せず",
+  kiketsu:["血虚","陰虚"], gozou:["肝","腎"],
+  houshou:"七物降下湯証", formula:"shichimotsukoka",
+  explanation:"大塚敬節が四物湯に黄耆・黄柏・釣藤鈎を加えて創方した降圧方剤です。四物湯で血虚を補い、釣藤鈎が肝熱を清めて降圧し、黄耆で気を補い血行を改善します。血虚を伴う高血圧・更年期症状に適します。",
+  shinsatsu:{ganshoku:"顔色はくすんで乾燥した血虚顔貌",hyojo:"頭重感とほてりで不快そうな表情",zetsudan:"舌質：淡紅〜紅　舌苔：少苔",myakudan:"細弦（細くて弦のように張る）",fukudan:"腹力は中等度〜弱、特記すべき腹証なし"},
+  kotenseki:{source:"大塚敬節「漢方診療三十年」（日本・昭和時代）",quote:"七物降下湯は四物湯に黄耆・黄柏・釣藤鈎を加えた処方で、血虚を伴う高血圧に著効する。（大塚敬節の創方）",modern:"「血を補いながら肝の熱を冷まし血圧を下げる」というコンセプトで大塚敬節が創った日本オリジナルの方剤です。中国古典にはなく、昭和の名医が現代病（高血圧）に対応して考案しました。虚証の高血圧・動脈硬化傾向のある方の頭重・耳鳴り・更年期の血虚症状に用います。"}},
+ {id:18,title:"症例18：感冒回復期の微熱と腹痛（太少合病）",
+  text:"38歳男性。風邪をひいて1週間が経過。高熱は下がったが微熱（37.2℃）が続く。食欲が戻らず、みぞおちから右脇にかけて重苦しい感じがある。腹部に軽い痛みがあり、倦怠感が残る。",
+  hakko:{inyo:"陽",kyojitsu:"虚",kannetsu:"熱",hyori:"表"},
+  rokubyoi:"少陽病",
+  kiketsu:["該当せず"], gozou:["該当せず"],
+  houshou:"柴胡桂枝湯証", formula:"saikokeihi",
+  explanation:"少陽病と太陽病が併存する太少合病の方証です。小柴胡湯と桂枝湯を合方した処方で、少量の桂枝湯成分が残存する表証を治し、柴胡・黄芩が少陽の熱を和解します。現代では消化器疾患・アレルギー疾患にも応用されます。",
+  shinsatsu:{ganshoku:"顔色はやや黄ばみがある（回復期）",hyojo:"疲れた表情、微熱のためぼんやりしている",zetsudan:"舌質：淡紅　舌苔：薄白から薄黄",myakudan:"弦細（弦で細い）",fukudan:"軽度の胸脇苦満（右季肋部の軽い抵抗）、腹力は弱め"},
+  kotenseki:{source:"傷寒論（張仲景・後漢）第146条",quote:"傷寒六七日、発熱微悪寒、支節煩疼、微嘔、心下支結、外証未去者、柴胡桂枝湯主之。",modern:"「傷寒になって6〜7日で、まだ発熱・微悪寒・関節の痛みが残り（表証が残存）、軽い悪心とみぞおちのつかえがある（少陽証）ものには柴胡桂枝湯を用いよ」という意味です。太陽病と少陽病の両方が残る移行期の方証で、現代では感冒回復期・慢性胃炎・消化性潰瘍・アレルギー疾患などに応用されます。"}},
+ {id:19,title:"症例19：脾陽虚と慢性胃炎（太陰病）",
+  text:"55歳男性。慢性的な胃もたれ・腹部の冷え感・軟便〜水様便が続く。冷たいものを食べると症状が悪化する。元気がなく倦怠感あり。食後に重だるさを感じる。脈は沈んで遅い。",
+  hakko:{inyo:"陰",kyojitsu:"虚",kannetsu:"寒",hyori:"裏"},
+  rokubyoi:"太陰病",
+  kiketsu:["該当せず"], gozou:["該当せず"],
+  houshou:"人参湯証", formula:"ninjinto",
+  explanation:"脾胃の陽気が虚して冷えた状態（太陰病）の代表方剤です。人参・白朮・乾姜・甘草の4味から成り、脾胃を温め（乾姜）、気を補い（人参）、健脾（白朮）します。",
+  shinsatsu:{ganshoku:"顔色は蒼白で活気がない（脾虚顔貌）",hyojo:"だるそうで元気のない表情",zetsudan:"舌質：淡白・胖大　舌苔：白滑苔（水っぽい）",myakudan:"沈遅（沈んで遅い）",fukudan:"腹部全体に軟弱感、胃部（みぞおち）に冷感・振水音あり"},
+  kotenseki:{source:"傷寒論（張仲景・後漢）第386条",quote:"霍乱、頭痛発熱、身疼痛、熱多欲飲水者、五苓散主之；寒多不用水者、理中丸主之。（理中丸＝人参湯）",modern:"「急性胃腸炎で寒証が強く水を飲みたがらないものには理中丸（人参湯）を用いよ」という意味です。人参湯は理中丸の湯剤です。脾胃が冷えて機能が低下した「太陰病」の代表方剤で、現代では慢性胃炎・過敏性腸症候群・冷え性・虚弱体質に幅広く応用されます。太陰病の条文「腹満而吐、食不下、自利益甚、時腹自痛」の症状像と対応します。"}},
+ {id:20,title:"症例20：胃痛と冷え（脾胃の気滞寒証）",
+  text:"40歳男性。ストレス性の胃痛・胃酸過多。食後や空腹時にみぞおちがキリキリと痛む。冷たいものや辛いもので悪化。げっぷが多い。押すと楽になる（喜按）。脈は沈弦。",
+  hakko:{inyo:"陰",kyojitsu:"虚",kannetsu:"寒",hyori:"裏"},
+  rokubyoi:"該当せず",
+  kiketsu:["気滞"], gozou:["脾"],
+  houshou:"安中散証", formula:"anchukusan",
+  explanation:"脾胃の寒証と気滞が合わさった胃痛の方剤です。桂皮・延胡索で気を行らせて止痛し、牡蛎で制酸し、茴香・良姜で温め、縮砂で健脾します。香蘇散（気滞型）より寒証が強い場合に適します。",
+  shinsatsu:{ganshoku:"顔色はやや蒼白で胃痛のため表情が暗い",hyojo:"みぞおちを押さえながら苦しそうな表情",zetsudan:"舌質：淡白　舌苔：薄白苔",myakudan:"沈弦（沈んで弦のような緊張）",fukudan:"心下部（みぞおち）に軽度の圧痛、押すと楽になる（喜按）"},
+  kotenseki:{source:"太平恵民和剤局方（宋・11〜12世紀）",quote:"安中散。治脾胃虚弱、三焦不和、心下虚痞、腹脇疼痛、痰逆噫醋…",modern:"「脾胃が虚弱で、みぞおちが張り腹・脇の痛み、胸焼け・げっぷ・胃酸が上がってくるものに用いる」という意味です。宋代の官製処方集に収録された古方で、牡蛎による制酸作用と延胡索の強力な止痛作用が特徴です。現代では胃潰瘍・慢性胃炎・機能性ディスペプシア（神経性胃炎）に広く応用されます。"}},
+];
+
+/* ============================== STATE ============================== */
+
+let state = {
+  step: 0, // 0 = case select
+  caseIdx: null,
+  hakkoAnswer: {},
+  rokubyoiAnswer: null,
+  kiketsuAnswer: [],
+  gozouAnswer: [],
+  houshouAnswer: null,
+  chihoAnswer: "",
+  basket: {}, // herbId -> dose
+  scored: false,
+};
+
+const STEPS = ["症例","八綱","六病位・気血水・五臓","方証","治法","生薬選択","結果"];
+
+/* ============================== RENDER HELPERS ============================== */
+
+function el(html){ const d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstChild; }
+function renderProgress(){
+  const bar=document.getElementById('progressBar');
+  bar.innerHTML="";
+  STEPS.forEach((s,i)=>{
+    const span=document.createElement('span');
+    span.textContent=(i+1)+". "+s;
+    if(i===state.step) span.className="active";
+    else if(i<state.step) span.className="done";
+    bar.appendChild(span);
+  });
+}
+
+function currentCase(){ return state.caseIdx===null?null:CASES[state.caseIdx]; }
+
+function donutSVG(pct,color,size,sw){
+  pct = Math.max(0,Math.min(100,pct));
+  const r=(size-sw)/2, cx=size/2, cy=size/2, circ=2*Math.PI*r;
+  const dash=(pct/100)*circ;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e2d9c9" stroke-width="${sw}"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${sw}"
+      stroke-dasharray="${dash.toFixed(2)} ${(circ-dash).toFixed(2)}" stroke-linecap="round"
+      transform="rotate(-90 ${cx} ${cy})"/>
+    <text x="${cx}" y="${cy+size*0.055}" text-anchor="middle" font-size="${size*0.22}" fill="#2d2a26" font-weight="bold">${pct}%</text>
+  </svg>`;
+}
+
+/* 患者イラスト：初診時／治療後（改善 or 反応乏しい）を簡易ピクトグラムで表現 */
+function patientSVG(mode){
+  // mode: "before" | "improved" | "poor"
+  const skin = mode==='before' ? '#d8c9a8' : (mode==='improved' ? '#f3c89a' : '#cdbfa0');
+  const cheek = mode==='improved' ? '#e8896f' : 'none';
+  const faceY = mode==='improved' ? 70 : 78;
+  const bodyTilt = mode==='improved' ? 0 : (mode==='before' ? 6 : 9);
+  const mouth = mode==='improved'
+    ? `<path d="M78 94 Q100 116 122 94" stroke="#5a3a2a" stroke-width="4" fill="none" stroke-linecap="round"/>
+       <path d="M78 94 Q100 116 122 94" stroke="none" fill="#fff" opacity="0.4"/>`
+    : (mode==='before'
+        ? `<path d="M85 100 Q100 95 115 100" stroke="#6b5a44" stroke-width="3" fill="none" stroke-linecap="round"/>`
+        : `<line x1="84" y1="101" x2="116" y2="101" stroke="#6b5a44" stroke-width="3" stroke-linecap="round"/>`);
+  const eyes = mode==='improved'
+    ? `<path d="M78 79 q7 -9 14 0" stroke="#3a2c20" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+       <path d="M108 79 q7 -9 14 0" stroke="#3a2c20" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
+    : `<line x1="80" y1="80" x2="90" y2="80" stroke="#3a2c20" stroke-width="3" stroke-linecap="round"/>
+       <line x1="110" y1="80" x2="120" y2="80" stroke="#3a2c20" stroke-width="3" stroke-linecap="round"/>`;
+  const arms = mode==='improved'
+    ? `<path d="M70 145 Q40 110 35 80" stroke="${skin}" stroke-width="14" fill="none" stroke-linecap="round"/>
+       <path d="M130 145 Q160 110 165 80" stroke="${skin}" stroke-width="14" fill="none" stroke-linecap="round"/>`
+    : `<path d="M70 150 Q55 175 60 200" stroke="${skin}" stroke-width="14" fill="none" stroke-linecap="round"/>
+       <path d="M130 150 Q145 175 140 200" stroke="${skin}" stroke-width="14" fill="none" stroke-linecap="round"/>`;
+  const sweat = (mode!=='improved') ? `<path d="M132 60 q6 8 0 14 q-6 -2 -3 -8 q-3 -3 3 -6" fill="#9fc6e0"/>` : '';
+  const extra = mode==='poor' ? `<line x1="60" y1="40" x2="50" y2="30" stroke="#8a8a8a" stroke-width="3" stroke-linecap="round"/>` : '';
+  return `<svg width="150" height="220" viewBox="0 0 200 220" transform="rotate(${bodyTilt} 100 150)">
+    <ellipse cx="100" cy="205" rx="55" ry="10" fill="#e7ddc7"/>
+    <rect x="70" y="140" width="60" height="65" rx="20" fill="${mode==='improved'?'#7fa896':'#9a9180'}"/>
+    ${arms}
+    <circle cx="100" cy="${faceY}" r="40" fill="${skin}"/>
+    ${cheek!=='none' ? `<circle cx="78" cy="88" r="7" fill="${cheek}" opacity="0.6"/><circle cx="122" cy="88" r="7" fill="${cheek}" opacity="0.6"/>` : ''}
+    ${eyes}
+    ${mouth}
+    ${sweat}
+    ${extra}
+  </svg>`;
+}
+
+function goStep(n){ state.step=n; render(); }
+
+function resetForNewCase(idx){
+  state.caseIdx=idx;
+  state.step=1;
+  state.hakkoAnswer={};
+  state.rokubyoiAnswer=null;
+  state.kiketsuAnswer=[];
+  state.gozouAnswer=[];
+  state.houshouAnswer=null;
+  state.chihoAnswer="";
+  state.basket={};
+  state.scored=false;
+  render();
+}
+
+/* ============================== PROGRESS / MASTERY ============================== */
+
+function loadProgress(){
+  try{ return JSON.parse(localStorage.getItem('kampoProgress')||'{"attempts":[]}'); }
+  catch(e){ return {attempts:[]}; }
+}
+
+function saveAttempt(caseIdx, scores){
+  const prog=loadProgress();
+  prog.attempts.push({ caseId:CASES[caseIdx].id, ts:Date.now(), scores });
+  localStorage.setItem('kampoProgress', JSON.stringify(prog));
+}
+
+function getBestScores(){
+  const prog=loadProgress();
+  const best={};
+  prog.attempts.forEach(a=>{
+    if(!best[a.caseId]||a.scores.overall>best[a.caseId].overall) best[a.caseId]=a.scores;
+  });
+  return best;
+}
+
+function getCategoryAverages(best){
+  const vals=Object.values(best);
+  if(!vals.length) return null;
+  const keys=['hakko','rokubyoi','kiketsu','houshou','herbs'];
+  const avgs={};
+  keys.forEach(k=>{ avgs[k]=Math.round(vals.reduce((s,v)=>s+(v[k]||0),0)/vals.length); });
+  avgs.overall=Math.round(vals.reduce((s,v)=>s+(v.overall||0),0)/vals.length);
+  return avgs;
+}
+
+function getMasteryLevel(pct){
+  if(pct>=90) return {label:'達人',stars:5,color:'#7a5c3e',desc:'漢方診断の高い習熟度に達しています'};
+  if(pct>=75) return {label:'上級',stars:4,color:'#3d7a52',desc:'臨床応用ができるレベルです'};
+  if(pct>=60) return {label:'中級',stars:3,color:'#3d6e8f',desc:'重要方剤の方証を把握できています'};
+  if(pct>=40) return {label:'初学',stars:2,color:'#9c7b4f',desc:'基本的なパターンが身についてきました'};
+  return {label:'入門',stars:1,color:'#888888',desc:'まずは基礎から取り組みましょう'};
+}
+
+/* ============================== STEP RENDERERS ============================== */
+
+function renderCaseSelect(){
+  const app=document.getElementById('app');
+  app.innerHTML="";
+
+  // 習熟度ダッシュボード
+  const best=getBestScores();
+  const avgs=getCategoryAverages(best);
+  const attempted=Object.keys(best).length;
+
+  const catDefs=[
+    {key:'hakko',  label:'八綱',    color:'#3d7a52'},
+    {key:'rokubyoi',label:'六病位', color:'#6b4c9a'},
+    {key:'kiketsu',label:'気血水',  color:'#3d6e8f'},
+    {key:'houshou',label:'方証',    color:'#9c7b4f'},
+    {key:'herbs',  label:'生薬構成',color:'#b1763a'},
+  ];
+
+  let dashHTML='';
+  if(avgs){
+    const lv=getMasteryLevel(avgs.overall);
+    const starsFill='★'.repeat(lv.stars)+'☆'.repeat(5-lv.stars);
+    dashHTML=`
+    <div class="mastery-panel">
+      <div class="mastery-header">
+        <span class="mastery-badge" style="background:${lv.color}">${lv.label}</span>
+        <span class="mastery-stars" style="color:${lv.color}">${starsFill}</span>
+        <span class="mastery-stat">${lv.desc}</span>
+      </div>
+      <div class="mastery-stat" style="margin-bottom:8px;">取り組んだ症例：${attempted} / ${CASES.length}例　　総合平均スコア：${avgs.overall}%</div>
+      <div class="cat-bars">
+        ${catDefs.map(d=>`
+          <div>${d.label}</div>
+          <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${avgs[d.key]}%;background:${d.color}"></div></div>
+          <div style="text-align:right;font-size:.75rem;color:var(--sub)">${avgs[d.key]}%</div>
+        `).join('')}
+      </div>
+      <span class="mastery-reset" id="resetProgress">記録をリセット</span>
+    </div>`;
+  } else {
+    dashHTML=`
+    <div class="mastery-panel">
+      <div class="mastery-header">
+        <span class="mastery-badge" style="background:#888">入門</span>
+        <span class="mastery-stars" style="color:#888">★☆☆☆☆</span>
+        <span class="mastery-stat">まずは症例に取り組んでみましょう</span>
+      </div>
+      <div class="mastery-stat">取り組んだ症例：0 / ${CASES.length}例</div>
+      <div class="cat-bars" style="margin-top:8px;">
+        ${catDefs.map(d=>`
+          <div>${d.label}</div>
+          <div class="cat-bar-track"><div class="cat-bar-fill" style="width:0%;background:${d.color}"></div></div>
+          <div style="text-align:right;font-size:.75rem;color:var(--sub)">--%</div>
+        `).join('')}
+      </div>
+    </div>`;
+  }
+
+  const panel=el(`<div class="panel">
+    <h2>漢方診断トレーニング</h2>
+    ${dashHTML}
+    <h3>症例を選んでください</h3>
+    <div class="case-select" id="caseGrid"></div>
+  </div>`);
+  app.appendChild(panel);
+
+  if(avgs) panel.querySelector('#resetProgress').onclick=()=>{
+    if(confirm('学習記録をすべてリセットしますか？')) {
+      localStorage.removeItem('kampoProgress');
+      renderCaseSelect();
+    }
+  };
+
+  const grid=panel.querySelector('#caseGrid');
+  CASES.forEach((c,i)=>{
+    const sc=best[c.id];
+    const tagHTML=sc
+      ? `<div class="score-tag done">最高スコア ${sc.overall}%</div>`
+      : `<div class="score-tag notyet">未挑戦</div>`;
+    const b=el(`<div class="case-btn"><div class="ttl">${c.title}</div><div class="sub">${c.text.slice(0,28)}…</div>${tagHTML}</div>`);
+    b.onclick=()=>resetForNewCase(i);
+    grid.appendChild(b);
+  });
+}
+
+function renderHakko(){
+  const c=currentCase();
+  const app=document.getElementById('app');
+  app.innerHTML="";
+  const s=c.shinsatsu||{};
+  const panel=el(`<div class="panel">
+    <h2>${c.title}</h2>
+    <div class="row" style="align-items:flex-start; gap:24px; flex-wrap:wrap;">
+      <div style="flex:1; min-width:240px;">
+        <div class="case-text">${c.text}</div>
+        <div class="shinsatsu-box">
+          <div class="shinsatsu-item"><div class="sh-label">顔色</div>${s.ganshoku||''}</div>
+          <div class="shinsatsu-item"><div class="sh-label">表情</div>${s.hyojo||''}</div>
+          <div class="shinsatsu-item"><div class="sh-label">舌診</div>${s.zetsudan||''}</div>
+          <div class="shinsatsu-item"><div class="sh-label">脈診</div>${s.myakudan||''}</div>
+          <div class="shinsatsu-item"><div class="sh-label">腹診</div>${s.fukudan||''}</div>
+        </div>
+      </div>
+      <div style="text-align:center; flex-shrink:0;">${patientSVG('before')}<div class="label">初診時の様子</div></div>
+    </div>
+  </div>`);
+  app.appendChild(panel);
+
+  const p2=el(`<div class="panel"><h2>STEP 1：八綱（陰陽・虚実・寒熱・表裏）を判定してください</h2><div id="hakkoBody"></div>
+    <div class="nav-actions">
+      <button class="btn ghost" id="backBtn">スタートに戻る</button>
+      <button class="btn" id="nextBtn" disabled>次へ（六病位・気血水・五臓）</button>
+    </div></div>`);
+  app.appendChild(p2);
+  const body=p2.querySelector('#hakkoBody');
+  Object.keys(HAKKO_OPTIONS).forEach(key=>{
+    const row=el(`<div><h3>${HAKKO_LABEL[key]}</h3><div class="row" data-key="${key}"></div></div>`);
+    body.appendChild(row);
+    const rowDiv=row.querySelector('.row');
+    HAKKO_OPTIONS[key].forEach(opt=>{
+      const chip=el(`<div class="choice">${opt}</div>`);
+      if(state.hakkoAnswer[key]===opt) chip.classList.add('selected');
+      chip.onclick=()=>{
+        state.hakkoAnswer[key]=opt;
+        renderHakko();
+      };
+      rowDiv.appendChild(chip);
+    });
+  });
+  const allSet = Object.keys(HAKKO_OPTIONS).every(k=>state.hakkoAnswer[k]);
+  p2.querySelector('#nextBtn').disabled=!allSet;
+  p2.querySelector('#nextBtn').onclick=()=>goStep(2);
+  p2.querySelector('#backBtn').onclick=()=>goStep(0);
+  renderProgress();
+}
+
+function toggleArr(arr,v){
+  const i=arr.indexOf(v);
+  if(i>=0) arr.splice(i,1); else arr.push(v);
+}
+
+function renderKiketsu(){
+  const c=currentCase();
+  const app=document.getElementById('app');
+  app.innerHTML="";
+  const panel=el(`<div class="panel">
+    <h2>STEP 2：病期・病態パターンを判定してください</h2>
+    <div class="case-text">${c.text}</div>
+    <p class="note">急性発熱性疾患（傷寒論的な経過の感冒・熱病など）では「六病位」で病期を判定します。気血水・五臓は主に内科的・慢性的な病態の分析に用います。当てはまらない場合はそれぞれ「該当せず」を選んでください。</p>
+    <h3>六病位（1つ選択）</h3><div class="row" id="rokubyoiRow"></div>
+    <h3>気血水（複数選択可）</h3><div class="row" id="kiketsuRow"></div>
+    <h3>関連する五臓（複数選択可）</h3><div class="row" id="gozouRow"></div>
+    <div class="nav-actions">
+      <button class="btn ghost" id="homeBtn">スタートに戻る</button>
+      <button class="btn secondary" id="backBtn">戻る</button>
+      <button class="btn" id="nextBtn" disabled>次へ（方証）</button>
+    </div>
+  </div>`);
+  app.appendChild(panel);
+  const rr=panel.querySelector('#rokubyoiRow');
+  ROKUBYOI_OPTIONS.forEach(opt=>{
+    const chip=el(`<div class="choice">${opt}</div>`);
+    if(state.rokubyoiAnswer===opt) chip.classList.add('selected');
+    chip.onclick=()=>{ state.rokubyoiAnswer=opt; renderKiketsu(); };
+    rr.appendChild(chip);
+  });
+  const kr=panel.querySelector('#kiketsuRow');
+  KIKETSU_OPTIONS.forEach(opt=>{
+    const chip=el(`<div class="choice">${opt}</div>`);
+    if(state.kiketsuAnswer.includes(opt)) chip.classList.add('selected');
+    chip.onclick=()=>{ toggleArr(state.kiketsuAnswer,opt); renderKiketsu(); };
+    kr.appendChild(chip);
+  });
+  const gr=panel.querySelector('#gozouRow');
+  GOZOU_OPTIONS.forEach(opt=>{
+    const chip=el(`<div class="choice">${opt}</div>`);
+    if(state.gozouAnswer.includes(opt)) chip.classList.add('selected');
+    chip.onclick=()=>{ toggleArr(state.gozouAnswer,opt); renderKiketsu(); };
+    gr.appendChild(chip);
+  });
+  panel.querySelector('#nextBtn').disabled = !state.rokubyoiAnswer;
+  panel.querySelector('#homeBtn').onclick=()=>goStep(0);
+  panel.querySelector('#backBtn').onclick=()=>goStep(1);
+  panel.querySelector('#nextBtn').onclick=()=>goStep(3);
+  renderProgress();
+}
+
+function renderHoushou(){
+  const c=currentCase();
+  const app=document.getElementById('app');
+  app.innerHTML="";
+  const options = FORMULAS.map(f=>f.houshou).sort((a,b)=>a.localeCompare(b,'ja'));
+  const panel=el(`<div class="panel">
+    <h2>STEP 3：方証を選択してください</h2>
+    <div class="case-text">${c.text}</div>
+    <select id="houshouSelect" style="margin-top:10px;width:100%;max-width:360px;">
+      <option value="">-- 選択してください --</option>
+      ${options.map(o=>`<option value="${o}" ${state.houshouAnswer===o?'selected':''}>${o}</option>`).join('')}
+    </select>
+    <div class="nav-actions">
+      <button class="btn ghost" id="homeBtn">スタートに戻る</button>
+      <button class="btn secondary" id="backBtn">戻る</button>
+      <button class="btn" id="nextBtn" ${state.houshouAnswer?'':'disabled'}>次へ（治法）</button>
+    </div>
+  </div>`);
+  app.appendChild(panel);
+  panel.querySelector('#houshouSelect').onchange=(e)=>{
+    state.houshouAnswer=e.target.value;
+    panel.querySelector('#nextBtn').disabled=!state.houshouAnswer;
+  };
+  panel.querySelector('#homeBtn').onclick=()=>goStep(0);
+  panel.querySelector('#backBtn').onclick=()=>goStep(2);
+  panel.querySelector('#nextBtn').onclick=()=>goStep(4);
+  renderProgress();
+}
+
+function renderChiho(){
+  const c=currentCase();
+  const app=document.getElementById('app');
+  app.innerHTML="";
+  const panel=el(`<div class="panel">
+    <h2>STEP 4：治法（治療方針）を記入してください</h2>
+    <p class="note">例：「発汗解表」「和解少陽」「補気健脾」「活血化瘀」「利水」「温陽散寒」など、漢方用語で簡潔に記述してください。</p>
+    <input type="text" id="chihoInput" style="width:100%;max-width:420px;" value="${state.chihoAnswer}" placeholder="治法を入力">
+    <div class="nav-actions">
+      <button class="btn ghost" id="homeBtn">スタートに戻る</button>
+      <button class="btn secondary" id="backBtn">戻る</button>
+      <button class="btn" id="nextBtn">次へ（生薬選択・煎じ薬の構成）</button>
+    </div>
+  </div>`);
+  app.appendChild(panel);
+  panel.querySelector('#chihoInput').oninput=(e)=>state.chihoAnswer=e.target.value;
+  panel.querySelector('#homeBtn').onclick=()=>goStep(0);
+  panel.querySelector('#backBtn').onclick=()=>goStep(3);
+  panel.querySelector('#nextBtn').onclick=()=>goStep(5);
+  renderProgress();
+}
+
+function renderHerbSelect(){
+  const c=currentCase();
+  const app=document.getElementById('app');
+  app.innerHTML="";
+  const panel=el(`<div class="panel">
+    <h2>STEP 5：生薬を一つずつ選び、煎じ薬を組み立ててください</h2>
+    <p class="note">方証「${state.houshouAnswer||'(未選択)'}」・治法「${state.chihoAnswer||'(未入力)'}」を踏まえて、必要と考える生薬を選び、用量(g/日)を設定してください。</p>
+    <div class="herb-grid" id="herbGrid"></div>
+    <div class="basket" id="basketBox"></div>
+    <div class="nav-actions">
+      <button class="btn ghost" id="homeBtn">スタートに戻る</button>
+      <button class="btn secondary" id="backBtn">戻る</button>
+      <button class="btn" id="scoreBtn">採点する</button>
+    </div>
+  </div>`);
+  app.appendChild(panel);
+  panel.querySelector('#homeBtn').onclick=()=>goStep(0);
+  const grid=panel.querySelector('#herbGrid');
+  HERBS.forEach(h=>{
+    const active = state.basket[h.id]!==undefined;
+    const defaultDose = (h.dose[0]+h.dose[1])/2;
+    const card=el(`<div class="herb-card ${active?'active':''}">
+      <div class="name">${h.name}</div>
+      <div class="kana">${h.kana}・${h.cat}</div>
+      <div class="eff">${h.eff}</div>
+      ${active?`<div class="dose-row">用量<input type="number" step="0.5" min="0" value="${state.basket[h.id]}" style="width:54px;"> g</div>`:''}
+    </div>`);
+    card.onclick=(e)=>{
+      if(e.target.tagName==='INPUT') return;
+      if(state.basket[h.id]!==undefined){ delete state.basket[h.id]; }
+      else { state.basket[h.id]=defaultDose; }
+      renderHerbSelect();
+    };
+    if(active){
+      const inp=card.querySelector('input');
+      inp.onclick=(e)=>e.stopPropagation();
+      inp.onchange=(e)=>{ state.basket[h.id]=parseFloat(e.target.value)||0; renderBasketOnly(); };
+    }
+    grid.appendChild(card);
+  });
+  renderBasket(panel);
+  panel.querySelector('#backBtn').onclick=()=>goStep(4);
+  panel.querySelector('#scoreBtn').onclick=()=>{ state.scored=true; goStep(6); };
+  renderProgress();
+}
+
+function renderBasketOnly(){
+  const box=document.getElementById('basketBox');
+  if(box) renderBasket(box.closest('.panel'));
+}
+
+function renderBasket(panel){
+  const box=panel.querySelector('#basketBox');
+  const keys=Object.keys(state.basket);
+  if(keys.length===0){ box.innerHTML="<em>まだ生薬が選択されていません。</em>"; return; }
+  let total=0;
+  let rows = keys.map(k=>{
+    total+=state.basket[k];
+    return `<tr><td>${HERB_MAP[k].name}</td><td>${state.basket[k]} g</td></tr>`;
+  }).join('');
+  box.innerHTML = `<table><thead><tr><th>生薬</th><th>用量</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="note">構成生薬数：${keys.length}種 ／ 総量：${total.toFixed(1)} g</div>`;
+}
+
+/* ============================== SCORING ============================== */
+
+function scoreHakko(c){
+  let correct=0; const total=4;
+  const detail = Object.keys(HAKKO_OPTIONS).map(k=>{
+    const ok = state.hakkoAnswer[k]===c.hakko[k];
+    if(ok) correct++;
+    return {key:k, label:HAKKO_LABEL[k], your:state.hakkoAnswer[k]||'(未選択)', correctAns:c.hakko[k], ok};
+  });
+  return {correct,total,detail,pct:Math.round(100*correct/total)};
+}
+
+function scoreKiketsu(c){
+  const yourSet=new Set([...state.kiketsuAnswer, ...state.gozouAnswer]);
+  const correctSet=new Set([...c.kiketsu, ...c.gozou]);
+  let hit=0;
+  correctSet.forEach(v=>{ if(yourSet.has(v)) hit++; });
+  const extra = [...yourSet].filter(v=>!correctSet.has(v));
+  const union = new Set([...yourSet,...correctSet]).size || 1;
+  const pct = Math.round(100*hit/union);
+  return {hit, correctTotal:correctSet.size, extra, yourSet:[...yourSet], correctSet:[...correctSet], pct};
+}
+
+function scoreHoushou(c){
+  return {ok: state.houshouAnswer===c.houshou, your:state.houshouAnswer, correctAns:c.houshou};
+}
+
+function scoreRokubyoi(c){
+  return {ok: state.rokubyoiAnswer===c.rokubyoi, your:state.rokubyoiAnswer||'(未選択)', correctAns:c.rokubyoi};
+}
+
+function scoreHerbs(c){
+  const formula = FORMULA_MAP[c.formula];
+  const correctIds = Object.keys(formula.comp);
+  const yourIds = Object.keys(state.basket);
+  const correctSet = new Set(correctIds);
+  const yourSet = new Set(yourIds);
+  let hit=0, doseOk=0;
+  correctIds.forEach(id=>{
+    if(yourSet.has(id)){
+      hit++;
+      const cd=formula.comp[id], yd=state.basket[id];
+      if(Math.abs(cd-yd) <= Math.max(1, cd*0.3)) doseOk++;
+    }
+  });
+  const missing = correctIds.filter(id=>!yourSet.has(id));
+  const extra = yourIds.filter(id=>!correctSet.has(id));
+  const recall = correctIds.length? hit/correctIds.length : 1;
+  const precision = yourIds.length? hit/yourIds.length : 0;
+  const f1 = (recall+precision)>0 ? 2*recall*precision/(recall+precision) : 0;
+  const dosePct = hit? Math.round(100*doseOk/hit) : 0;
+  return {formula, correctIds, yourIds, missing, extra, hit, recall, precision, f1, dosePct,
+    pct: Math.round(100*f1)};
+}
+
+function renderResult(){
+  const c=currentCase();
+  const app=document.getElementById('app');
+  app.innerHTML="";
+
+  const sH=scoreHakko(c), sRo=scoreRokubyoi(c), sK=scoreKiketsu(c), sHo=scoreHoushou(c), sHe=scoreHerbs(c);
+  const overall = Math.round((sH.pct + (sRo.ok?100:0) + sK.pct + (sHo.ok?100:0) + sHe.pct)/5);
+  saveAttempt(state.caseIdx, {hakko:sH.pct, rokubyoi:sRo.ok?100:0, kiketsu:sK.pct, houshou:sHo.ok?100:0, herbs:sHe.pct, overall});
+
+  const panel=el(`<div class="panel">
+    <h2>採点結果：${c.title}</h2>
+    <div class="score-box">
+      <div class="score-card">${donutSVG(overall,'#7a5c3e',112,15)}<div class="label">総合正解率</div></div>
+      <div class="score-card">${donutSVG(sH.pct,'#3d7a52',92,12)}<div class="label">八綱</div></div>
+      <div class="score-card">${donutSVG(sRo.ok?100:0,'#6b4c9a',92,12)}<div class="label">六病位</div></div>
+      <div class="score-card">${donutSVG(sK.pct,'#3d6e8f',92,12)}<div class="label">気血水・五臓</div></div>
+      <div class="score-card">${donutSVG(sHo.ok?100:0,'#9c7b4f',92,12)}<div class="label">方証</div></div>
+      <div class="score-card">${donutSVG(sHe.pct,'#b1763a',92,12)}<div class="label">生薬構成(F1)</div></div>
+    </div>
+    <p class="note">各円グラフの色付き部分が「正解率（一致した割合）」を表します。残りの灰色部分が不正解・不一致の割合です。</p>
+  </div>`);
+  app.appendChild(panel);
+
+  // 患者イラスト（生薬構成の正解率75%以上で改善イメージ）
+  const improved = sHe.pct >= 75;
+  const patientPanel=el(`<div class="panel">
+    <h3>患者さんの様子（生薬選択の正解率：${sHe.pct}%）</h3>
+    <div class="row" style="justify-content:center; align-items:center; gap:40px;">
+      <div style="text-align:center;">${patientSVG('before')}<div class="label">初診時</div></div>
+      <div style="font-size:28px;">→</div>
+      <div style="text-align:center;">${patientSVG(improved?'improved':'poor')}<div class="label">治療後</div></div>
+    </div>
+    <p class="note" style="text-align:center;">
+      ${improved
+        ? '生薬構成の正解率が75％以上のため、選んだ漢方薬が治法に合致し、症状が改善して元気になったイメージです。'
+        : '生薬構成の正解率が75％未満のため、治法と生薬の選択がずれており、症状の改善が乏しいイメージです。生薬構成の比較・不正解の理由を確認してみましょう。'}
+    </p>
+  </div>`);
+  app.appendChild(patientPanel);
+
+  // 六病位詳細
+  const roPanel=el(`<div class="panel"><h3>六病位の判定</h3>
+    <p>あなたの解答：<strong class="${sRo.ok?'tag-ok':'tag-miss'}">${sRo.your}</strong></p>
+    <p>正解：<strong>${sRo.correctAns}</strong></p>
+    ${!sRo.ok?`<div class="explanation"><strong>不正解の理由：</strong>正解は「${sRo.correctAns}」です。${ROKUBYOI_MEANING[sRo.correctAns]}</div>`:'<p class="note tag-ok">六病位の判定は正解です。</p>'}
+  </div>`);
+  app.appendChild(roPanel);
+
+  // 八綱詳細
+  const wrongHakko = sH.detail.filter(d=>!d.ok);
+  const hakkoPanel=el(`<div class="panel"><h3>八綱の判定</h3><table class="compare-table">
+    <tr><th>項目</th><th>あなたの解答</th><th>正解</th><th>判定</th></tr>
+    ${sH.detail.map(d=>`<tr><td>${d.label}</td><td>${d.your}</td><td>${d.correctAns}</td><td class="${d.ok?'tag-ok':'tag-miss'}">${d.ok?'○':'×'}</td></tr>`).join('')}
+  </table>
+  ${wrongHakko.length? wrongHakko.map(d=>`<div class="explanation"><strong>${d.label}が不正解の理由：</strong>正解は「${d.correctAns}」です。${HAKKO_MEANING[d.key][d.correctAns]}</div>`).join('') : '<p class="note tag-ok">八綱はすべて正解です。</p>'}
+  </div>`);
+  app.appendChild(hakkoPanel);
+
+  // 気血水詳細
+  const missingKiketsu = sK.correctSet.filter(v=>!sK.yourSet.includes(v));
+  const kPanel=el(`<div class="panel"><h3>気血水・五臓の判定</h3>
+    <p>あなたの解答：${sK.yourSet.length?sK.yourSet.join('、'):'(なし)'}</p>
+    <p>正解：${sK.correctSet.join('、')}</p>
+    ${sK.extra.length?`<p class="tag-extra">余分な選択：${sK.extra.join('、')}</p>`:''}
+    ${missingKiketsu.length? missingKiketsu.map(v=>`<div class="explanation"><strong>「${v}」を見落とした理由の手がかり：</strong>${KIKETSU_MEANING[v]||GOZOU_MEANING[v]||''}</div>`).join('') : '<p class="note tag-ok">気血水・五臓のパターンはすべて選択できています。</p>'}
+  </div>`);
+  app.appendChild(kPanel);
+
+  // 方証
+  const yourFormula = FORMULAS.find(f=>f.houshou===sHo.your);
+  const hoPanel=el(`<div class="panel"><h3>方証の判定</h3>
+    <p>あなたの解答：<strong class="${sHo.ok?'tag-ok':'tag-miss'}">${sHo.your||'(未選択)'}</strong>${yourFormula?`（治法：${yourFormula.chiho}）`:''}</p>
+    <p>正解：<strong>${sHo.correctAns}</strong>（治法：${sHe.formula.chiho}）</p>
+    ${!sHo.ok?`<div class="explanation"><strong>不正解の理由：</strong>${yourFormula?`選択した「${sHo.your}」は治法が「${yourFormula.chiho}」であり、本症例の八綱・気血水所見とは一致しません。`:'方証が選択されていません。'}本症例は ${c.explanation}</div>`:''}
+  </div>`);
+  app.appendChild(hoPanel);
+
+  // 生薬構成
+  const allIds = new Set([...sHe.correctIds, ...sHe.yourIds]);
+  let herbRows = [...allIds].sort((a,b)=>HERB_MAP[a].name.localeCompare(HERB_MAP[b].name,'ja')).map(id=>{
+    const inCorrect = sHe.correctIds.includes(id);
+    const inYours = sHe.yourIds.includes(id);
+    let mark, cls;
+    if(inCorrect && inYours){ mark='一致'; cls='tag-ok'; }
+    else if(inCorrect && !inYours){ mark='不足'; cls='tag-miss'; }
+    else { mark='余分'; cls='tag-extra'; }
+    return `<tr><td>${HERB_MAP[id].name}</td><td>${inYours?state.basket[id]+' g':'-'}</td><td>${inCorrect?sHe.formula.comp[id]+' g':'-'}</td><td class="${cls}">${mark}</td></tr>`;
+  }).join('');
+  const herbReasons = [
+    ...sHe.missing.map(id=>`<div class="explanation"><strong>${HERB_MAP[id].name}が不足している理由：</strong>本処方の治法「${sHe.formula.chiho}」を実現するために必要な生薬です（効能：${HERB_MAP[id].eff}）。</div>`),
+    ...sHe.extra.map(id=>`<div class="explanation"><strong>${HERB_MAP[id].name}が余分である理由：</strong>効能は「${HERB_MAP[id].eff}」であり、本処方の治法「${sHe.formula.chiho}」には直接関係しません。</div>`)
+  ].join('');
+  const herbPanel=el(`<div class="panel"><h3>生薬構成の比較（正解処方：${sHe.formula.name}）</h3>
+    <table class="compare-table"><tr><th>生薬</th><th>あなたの用量</th><th>正解の用量</th><th>判定</th></tr>${herbRows}</table>
+    <p class="note">一致率（再現率）：${Math.round(sHe.recall*100)}% ／ 的中率（精度）：${Math.round(sHe.precision*100)}% ／ 一致した生薬の用量適正率：${sHe.dosePct}%</p>
+    ${herbReasons || '<p class="note tag-ok">生薬構成は正解処方と完全に一致しています。</p>'}
+  </div>`);
+  app.appendChild(herbPanel);
+
+  const expPanel=el(`<div class="panel"><h3>解説</h3>
+    <div class="explanation">
+      <p><strong>正解処方：${sHe.formula.name}</strong>（${sHe.formula.houshou}／治法：${sHe.formula.chiho}）</p>
+      <p>${c.explanation}</p>
+    </div>
+  </div>`);
+  app.appendChild(expPanel);
+
+  // 古典出典パネル
+  const kt=c.kotenseki;
+  if(kt){
+    const ktPanel=el(`<div class="panel"><h3>📖 古典出典：${sHe.formula.name}</h3>
+      <div class="kotenseki-box">
+        <div class="kotenseki-source">出典：${kt.source}</div>
+        <div class="kotenseki-quote">「${kt.quote}」</div>
+        <div class="kotenseki-modern"><strong>現代語解説：</strong>${kt.modern}</div>
+      </div>
+    </div>`);
+    app.appendChild(ktPanel);
+  }
+
+  const nav=el(`<div class="panel"><div class="nav-actions">
+    <button class="btn secondary" id="retryBtn">この症例をやり直す</button>
+    <button class="btn" id="nextCaseBtn">スタートに戻る</button>
+  </div></div>`);
+  app.appendChild(nav);
+  nav.querySelector('#retryBtn').onclick=()=>resetForNewCase(state.caseIdx);
+  nav.querySelector('#nextCaseBtn').onclick=()=>goStep(0);
+
+  renderProgress();
+}
+
+/* ============================== MAIN RENDER ============================== */
+
+function render(){
+  switch(state.step){
+    case 0: renderCaseSelect(); break;
+    case 1: renderHakko(); break;
+    case 2: renderKiketsu(); break;
+    case 3: renderHoushou(); break;
+    case 4: renderChiho(); break;
+    case 5: renderHerbSelect(); break;
+    case 6: renderResult(); break;
+  }
+}
+
+render();
+</script>
+</body>
+</html>
