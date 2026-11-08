@@ -683,8 +683,8 @@ const Snd = {
     const setBtn=(playing)=>{ const b=document.getElementById('ttsBtn'); if(!b) return; b.textContent = playing ? '■ 読み上げを停止' : '▶ 症例を読み上げ'; b.classList.toggle('playing', playing); };
     a.onplay=()=>setBtn(true);
     a.onended=a.onpause=()=>setBtn(false);
-    a.onerror=()=>{ setBtn(false); const b=document.getElementById('ttsBtn'); if(b){ b.disabled=true; b.textContent='音声ファイルなし'; } };
-    a.play().catch(()=>setBtn(false));
+    a.onerror=()=>{ setBtn(false); const b=document.getElementById('ttsBtn'); if(b){ b.disabled=true; b.textContent='音声ファイルなし（公開URLでお試しください）'; } };
+    a.play().catch(()=>{ setBtn(false); const b=document.getElementById('ttsBtn'); if(b){ b.textContent='▶ 再生がブロックされました（公開URLでお試しください）'; } });
   },
   isPlaying(){ return !!(this.tts && !this.tts.paused && !this.tts.ended); },
   stopTTS(){ if(this.tts){ try{ this.tts.pause(); this.tts.currentTime=0; }catch(e){} this.tts=null; } },
@@ -692,6 +692,7 @@ const Snd = {
     this.muted=!this.muted;
     localStorage.setItem('kampoMuted', this.muted?'1':'0');
     if(this.muted) this.stopTTS();
+    else this.correct();   // ONに切り替えたときはテスト音を鳴らし、音が出る環境か確認できるようにする
     this.updateMuteBtn();
   },
   updateMuteBtn(){
