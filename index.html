@@ -618,14 +618,17 @@ function swapToSVG(img,mode){ img.outerHTML = patientSVG(mode); }
 function goStep(n){ state.step=n; render(); }
 
 /* ヘッダー常設ボタン */
-document.getElementById('hdrHome').onclick=()=>{
-  if(state.step>0 && state.step<6 && !confirm('入力中の内容は破棄されます。スタートに戻りますか？')) return;
-  goStep(0); window.scrollTo({top:0,behavior:'smooth'});
-};
-document.getElementById('hdrReload').onclick=()=>{
+document.getElementById('hdrHome').addEventListener('click',()=>{
+  // confirm()はプレビュー環境でブロックされることがあるため使わず、即座にスタートへ戻す
+  goStep(0);
+  try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){ window.scrollTo(0,0); }
+});
+document.getElementById('hdrReload').addEventListener('click',()=>{
   // ブラウザ／GitHub Pagesのキャッシュを回避して最新版を強制再読込（学習記録はlocalStorageに保持されます）
-  const u=new URL(location.href); u.searchParams.set('v',Date.now()); location.replace(u.toString());
-};
+  try{
+    const u=new URL(location.href); u.searchParams.set('v',Date.now()); location.replace(u.toString());
+  }catch(e){ location.reload(); }  // file:// 等でURL操作が使えない環境向け
+});
 
 function resetForNewCase(idx){
   state.caseIdx=idx;
