@@ -15,6 +15,11 @@ body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;bac
 header{background:linear-gradient(135deg,#3d2a14,#6b4c2a);color:#fdf6e8;padding:26px 5vw 22px;border-bottom:3px solid #3d2a14;}
 header h1{margin:0 0 6px;font-size:1.45rem;letter-spacing:.06em;font-weight:700;}
 header p{margin:0;font-size:.82rem;color:#d9c89e;line-height:1.6;}
+.header-inner{max-width:940px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;}
+.header-tools{display:flex;gap:8px;flex-shrink:0;padding-top:2px;}
+.hbtn{background:rgba(255,255,255,.12);color:#fdf6e8;border:1.5px solid rgba(253,246,232,.55);border-radius:20px;padding:7px 14px;font-size:.8rem;font-weight:600;cursor:pointer;letter-spacing:.03em;white-space:nowrap;transition:.15s;}
+.hbtn:hover{background:rgba(255,255,255,.25);border-color:#fdf6e8;}
+@media (max-width:600px){.header-inner{flex-direction:column;} .header-tools{width:100%;} .hbtn{flex:1;}}
 .wrap{max-width:940px;margin:0 auto;padding:28px 5vw 80px;}
 
 /* プログレスバー */
@@ -132,8 +137,16 @@ footer{text-align:center;padding:30px 5vw;color:var(--sub);font-size:.75rem;bord
 </head>
 <body>
 <header>
-  <h1>漢方臨床トレーニング ― 症例から煎じ薬を組み立てる</h1>
-  <p>症例を読み解き → 漢方的診断（八綱・気血水・五臓） → 方証の決定 → 治法の決定 → 生薬を一つずつ選んで処方を構成する、学習用シミュレーターです。</p>
+  <div class="header-inner">
+    <div>
+      <h1>漢方臨床トレーニング ― 症例から煎じ薬を組み立てる</h1>
+      <p>症例を読み解き → 漢方的診断（八綱・気血水・五臓） → 方証の決定 → 治法の決定 → 生薬を一つずつ選んで処方を構成する、学習用シミュレーターです。</p>
+    </div>
+    <div class="header-tools">
+      <button class="hbtn" id="hdrHome" title="症例選択画面に戻ります">⌂ スタートに戻る</button>
+      <button class="hbtn" id="hdrReload" title="キャッシュを無視して最新版を読み込み直します">⟳ 最新版に更新</button>
+    </div>
+  </div>
 </header>
 <div class="wrap">
 
@@ -603,6 +616,16 @@ function patientImg(mode){
 function swapToSVG(img,mode){ img.outerHTML = patientSVG(mode); }
 
 function goStep(n){ state.step=n; render(); }
+
+/* ヘッダー常設ボタン */
+document.getElementById('hdrHome').onclick=()=>{
+  if(state.step>0 && state.step<6 && !confirm('入力中の内容は破棄されます。スタートに戻りますか？')) return;
+  goStep(0); window.scrollTo({top:0,behavior:'smooth'});
+};
+document.getElementById('hdrReload').onclick=()=>{
+  // ブラウザ／GitHub Pagesのキャッシュを回避して最新版を強制再読込（学習記録はlocalStorageに保持されます）
+  const u=new URL(location.href); u.searchParams.set('v',Date.now()); location.replace(u.toString());
+};
 
 function resetForNewCase(idx){
   state.caseIdx=idx;
